@@ -51,15 +51,11 @@ def get_zipfile_information(url: str, destination: str) -> None:
   table_content : List[str] = table_data.text.split("\n")
   csv_files_in_destination : List[str] = [ file for file in os.listdir(destination) if file[-4:] == ".csv" ]
   # Extract the filename from path
-  print(csv_files_in_destination)
   csv_file = csv_filename[len(destination) + 1:]
 
   file_already_exists : bool = True if csv_file in csv_files_in_destination else False
   zipfile_info = pd.read_csv(csv_file, parse_dates=["last_modified_date"]) if file_already_exists else None
 
-  # delete later
-  if file_already_exists:
-    print("csv file on zipfile information detected")
 
   for index, row in enumerate(table_content):
     valid_row : bool = row[:6].isdigit()
@@ -71,34 +67,21 @@ def get_zipfile_information(url: str, destination: str) -> None:
         filename_exists_in_df : bool = zipfile_info.loc[zipfile_info["filename"] == filename].shape[0] > 0
         if filename_exists_in_df:
           # last_modified_date = datetime.strptime(last_modified_date, )
-          print(f"row {index + 1} filename  exists in csv file")
           current_logged_modified_date = pd.Timestamp(str(zipfile_info.loc[zipfile_info["filename"] == filename, "last_modified_date"].values[0])).to_pydatetime()
-          print(current_logged_modified_date)
-          print(type(current_logged_modified_date))
-          print(type(last_modified_date))
           if last_modified_date > current_logged_modified_date:
-            print(f"row {index + 1} contains a more recent modified zipfile")
-            print(f"Updating row {index + 1}")
             # archive data 
             archive_data(filename)
             # update the modified date and file size 
             zipfile_info.loc[zipfile_info["filename"] == filename] = [filename, last_modified_date, file_size]
-          else:
-            # delete later
-            print(f"row {index + 1} already exist in csv file")
         else:
           # add row to data frame
-          print(f"row {index + 1} is not in data frame")
-          print(f"adding row {index + 1} to data frame") 
           zipfile_info.loc[len(zipfile_info)] = [filename, last_modified_date, file_size]
 
       else:
-        print(f"row {index + 1} is valid! Extracting content ...")
         # add content to dictionary 
         zipfile_info_data["filename"].append(filename)
         zipfile_info_data["last_modified_date"].append(last_modified_date)
         zipfile_info_data["filesize"].append(file_size)
-        print(f"row {index + 1} extracted")
 
   if len(list(zipfile_info_data.items())) > 0 and not file_already_exists:
     data : pd.DataFrame = pd.DataFrame.from_dict(zipfile_info_data)
