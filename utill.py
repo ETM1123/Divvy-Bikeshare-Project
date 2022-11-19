@@ -111,7 +111,17 @@ def get_webpage_content(url: str) -> str:
   return data.text
 
 def webpage_content_to_dict(webpage_content: str) -> dict:
-  pass
+  data : dict = {"filename": [], "last_modified_date": [], "filesize": []}
+  table_content : List[str] = webpage_content.split(" ")
+
+  for row in table_content:
+    if row[:6].isdigit():
+      filename, last_modified_date, filesize = extract_row_content(row)
+      data["filename"].append(filename)
+      data["last_modified_date"].append(last_modified_date)
+      data["filesize"].append(filesize)
+      
+  return data 
 
 def save_metadata(data : dict, destination: str, filename : str) -> None:
   pass
