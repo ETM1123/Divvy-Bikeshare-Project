@@ -100,7 +100,15 @@ def get_zipfile_information(url: str, destination: str, metadata_filename : str 
   #   data.to_csv(csv_filename, index = False)
 
 def get_webpage_content(url: str) -> str:
-  pass
+  options = ChromeOptions()
+  options.headless = True
+  driver = Chrome(options=options)
+  driver.get(url)
+
+  table_id = "tbody-content"
+  data = driver.find_element(By.ID, table_id)
+  sleep(3)
+  return data.text
 
 def webpage_content_to_dict(webpage_content: str) -> dict:
   pass
