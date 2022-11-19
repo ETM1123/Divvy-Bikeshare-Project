@@ -43,62 +43,6 @@ def get_zipfile_information(url: str, destination: str, metadata_filename : str 
     save_metadata(zipfile_metadata, destination, metadata_filename)
 
 
-  # # Don't launch browser to webpage
-  # options = ChromeOptions()
-  # options.headless = True
-
-  # # Set up driver 
-  # driver = Chrome(options=options)
-  # # Fetch webpage 
-  # driver.get(url)
-
-  # zipfile_info_data : dict = {"filename": [], "last_modified_date": [], "filesize": []}
-  # table_id : str = "tbody-content"
-  # table_data = driver.find_element(By.ID, table_id)
-  # csv_filename : str = f"{destination}/zipfile_info.csv"
-
-  # sleep(3)
-
-  # table_content : List[str] = table_data.text.split("\n")
-  # csv_files_in_destination : List[str] = [ file for file in os.listdir(destination) if file[-4:] == ".csv" ]
-  # # Extract the filename from path
-  # csv_file = csv_filename[len(destination) + 1:]
-
-  # file_already_exists : bool = True if csv_file in csv_files_in_destination else False
-  # zipfile_info = pd.read_csv(csv_file, parse_dates=["last_modified_date"]) if file_already_exists else None
-
-
-  # for index, row in enumerate(table_content):
-  #   valid_row : bool = row[:6].isdigit()
-
-  #   if valid_row:
-  #     filename, last_modified_date, file_size = extract_row_content(row)
-
-  #     if file_already_exists:
-  #       filename_exists_in_df : bool = zipfile_info.loc[zipfile_info["filename"] == filename].shape[0] > 0
-  #       if filename_exists_in_df:
-  #         # last_modified_date = datetime.strptime(last_modified_date, )
-  #         current_logged_modified_date = pd.Timestamp(str(zipfile_info.loc[zipfile_info["filename"] == filename, "last_modified_date"].values[0])).to_pydatetime()
-  #         if last_modified_date > current_logged_modified_date:
-  #           # archive data 
-  #           archive_data(filename)
-  #           # update the modified date and file size 
-  #           zipfile_info.loc[zipfile_info["filename"] == filename] = [filename, last_modified_date, file_size]
-  #       else:
-  #         # add row to data frame
-  #         zipfile_info.loc[len(zipfile_info)] = [filename, last_modified_date, file_size]
-
-  #     else:
-  #       # add content to dictionary 
-  #       zipfile_info_data["filename"].append(filename)
-  #       zipfile_info_data["last_modified_date"].append(last_modified_date)
-  #       zipfile_info_data["filesize"].append(file_size)
-
-  # if len(list(zipfile_info_data.items())) > 0 and not file_already_exists:
-  #   data : pd.DataFrame = pd.DataFrame.from_dict(zipfile_info_data)
-  #   # Save extracted data as a csv file
-  #   data.to_csv(csv_filename, index = False)
-
 def get_webpage_content(url: str) -> str:
   options = ChromeOptions()
   options.headless = True
@@ -120,14 +64,32 @@ def webpage_content_to_dict(webpage_content: str) -> dict:
       data["filename"].append(filename)
       data["last_modified_date"].append(last_modified_date)
       data["filesize"].append(filesize)
-      
+
   return data 
 
 def save_metadata(data : dict, destination: str, filename : str) -> None:
-  pass
+  filepath : str = f"{destination}/{filename}"
+  pd.DataFrame.from_dict(data).to_csv(filepath, index= False)
 
 def update_metadata(data : dict, destination : str, filename: str) -> None:
-  pass
+  filepath : str = f"{destination}/{filename}"
+  filenames, modified_dates, filesize = list(data.values())
+  rows = zip(filenames, modified_dates, filesize)
+
+  zipfile_metadata : pd.DataFrame = pd.read_csv(filepath, parse_date = ["last_modified_date"])
+
+  for row in rows:
+    name, date, size = row
+    if zipfile_metadata.loc[zipfile_metadata["filename"] == name].shape[0] > 0:
+      logged_date : datetime = pd.Timestamp(zipfile_metadata.loc[zipfile_metadata["filename"] == name, "last_modified_date"].values[0]).to_pydatetime()
+      if date > logged_date:
+        zipfile_metadata.loc[zipfile_metadata["filename"] == name] = [name, date, size]
+
+    else:
+      zipfile_metadata.loc[len(zipfile_metadata)] = [name, date, size]
+
+  save_metadata(zipfile_metadata.to_dict(orient="list"), destination, filename)
+
 
 def extract_row_content(row : str) -> tuple[str, datetime, str]:
   row_content : List[str] = row.split(" ")
