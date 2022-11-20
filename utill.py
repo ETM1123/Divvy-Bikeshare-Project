@@ -12,6 +12,7 @@ import pandas as pd
 import urllib.request
 import zipfile
 import os
+import shutil
 
 # Idea 
 # Extract information from the URL
@@ -24,7 +25,7 @@ import os
 
 # We want to extract all of the information 
 
-def get_zipfile_information(url: str, destination: str, metadata_filename : str = "zipfile_metadata.csv" ) -> None:
+def extract_zipfile_metadata(url: str = "", destination: str = "", metadata_filename : str = "zipfile_metadata.csv" ) -> None:
   """Extracts and saves the name of the zip file, the last date it was modified, and the file size from the 
   table located on the url page. Saves the extracted content as a csv file in destination path.
 
@@ -109,20 +110,44 @@ def extract_row_content(row : str) -> tuple[str, datetime, str]:
 
   return filename, last_modified_date, file_size
 
-def archive_data(filename: str) -> None:
-  pass
+def archive_data(destination : str, filename: str) -> None:
+  year : str = filename[:5]
+  from_path : str = f"{destination}/{year}/{filename}"
+  archive_path : str = f"{destination}/archive"
+  files_in_archive : List[str] = [file for file in os.listdir(archive_path) if file[:-4] == ".csv"]
+  if filename in files_in_archive:
+    j = len(filename[:-4]) # extracts name part of the filename
+    version_num = len([f for f in files_in_archive if filename[:j] == f[:j]])
+    new_filename = f"{filename[:j]}_{version_num + 1}.csv"
+    to_path = f"{archive_data}/{new_filename}"
+    shutil.make_move(from_path, to_path)
+  
+  else:
+    to_path : str = f"{archive_path}/{filename}"
+    shutil.move(from_path, to_path)
 
-def extract_zipfile_to(destination: str) -> None:
+def extract_zipfile(url: str, destination: str = "", metadata_filename : str = "") -> None:
   """Downloads and unzips the zip file content to destination
 
   Args:
       destination (str): Path to the location where to store data. 
   """
-  pass
+  extract_zipfile_metadata() 
+  filepath : str = f"{destination}/{metadata_filename}"
+  metadata : pd.DataFrame = pd.read_csv(filepath, parse_dates=["last_modified_date"])
 
-if __name__ == "__main__":
-  URL : str  = "https://divvy-tripdata.s3.amazonaws.com/index.html"
-  current_path : str = "/Users/eyobmanhardt/Desktop/divvy_bikeshare/divvy_project"
-  get_zipfile_information(URL, current_path)
+  zipfile_filenames = list(metadata.filename)
+  source_and_filename = [(f"{url}/{filename}", filename) for filename in zipfile_filenames]
+
+  for source, filename in source_and_filename:
+    file, _ = urllib.request.urlretrieve(source)
+    with zipfile.ZipFile(file) as zipfile_content:
+      year : str = filename[:5]
+      path : str = f"{destination}/{year}"
+      if filename not in [f for f in os.listdir(path)]:
+        zipfile_content.extractall(path)
+
+
+
 
 
