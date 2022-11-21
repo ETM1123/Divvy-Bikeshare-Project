@@ -15,30 +15,20 @@ import os
 import shutil
 from pathlib import Path
 
-# Idea 
-# Extract information from the URL
-# The webpage contains a table with the following content:
-# Downloadable zipfile link, the last date  content of the zipfile was modified, and the size of the zip file
 
-# We are not interested in all of the zip files on the webpage - we are only interested 
-# in the zip files with the following name conventions 202004-divvy-tripdata.zip 
-# i.e year+month-company name 
-
-# We want to extract all of the information 
-
-DIRECTORY : str = Path.cwd()
 
 def extract_zipfile_metadata(data_directory: str, metadata_filename : str, url: str = "https://divvy-tripdata.s3.amazonaws.com/index.html") -> None:
-  """Extracts and saves the name of the zip file, the last date it was modified, and the file size from the 
-  table located on the url page. Saves the extracted content as a csv file in data_directory path.
+  """Extracts and saves the metadata from url i.e (filename, last modified date, file size) as csv file if the metadata_filename does not exist 
+  in the data_directory. If the metadata_filename exists in the data directory, then update the metadata file if new contents are added or modified.
 
-  args:
-    url (str): link to the webpage where the content is stored in html and java script format.
-    data_directory (str): Path to the location where to store data.
+  Args:
+      data_directory (str): A path where all of the data are located
+      metadata_filename (str): Filename for the 
+      url (str, optional): URL to the webpage that contains the metadata about the zip files. Defaults to "https://divvy-tripdata.s3.amazonaws.com/index.html".
   """
   webpage_content : str = get_webpage_content(url)
   zipfile_metadata : dict = webpage_content_to_dict(webpage_content)
-  path : str = os.path.join(DIRECTORY, data_directory)
+  path : str = get_path(data_directory)
   files_in_directory : List[str] = [file for file in os.listdir(path) if file[-4:] == ".csv"]
 
   if metadata_filename in files_in_directory:
@@ -49,6 +39,14 @@ def extract_zipfile_metadata(data_directory: str, metadata_filename : str, url: 
 
 
 def get_webpage_content(url: str) -> str:
+  """Opens the url page and extracts the desired data (i.e a table containing information about different downloadable zip files on Divvy bike trip data) as a string
+
+  Args:
+      url (str):  URL to the webpage that contains the metadata about the zip files.
+
+  Returns:
+      str: Webpage content as a string.
+  """
   options = ChromeOptions()
   options.headless = True
   driver = Chrome(options=options)
@@ -60,24 +58,42 @@ def get_webpage_content(url: str) -> str:
   return data.text
 
 def webpage_content_to_dict(webpage_content: str) -> dict:
+  """ Converts webpage content (from string) to a dictionary.
+
+  Args:
+      webpage_content (str): A long string where each line contains (filename, last_modified_date, filesize) separated by " ".
+
+  Returns:
+      dict: A dictionary containing (filename, last_modified_date, filesize) as keys with respective List[str] as values.
+  """
   data : dict = {"filename": [], "last_modified_date": [], "filesize": []}
   table_content : List[str] = webpage_content.split("\n")
-  # print(table_content)
-  # print(table_content)
-
   for row in table_content:
     if row[:6].isdigit():
       filename, last_modified_date, filesize = extract_row_content(row)
       data["filename"].append(filename)
       data["last_modified_date"].append(last_modified_date)
       data["filesize"].append(filesize)
-
   return data 
 
 def save_metadata(data : dict, data_directory: str, filename : str) -> None:
+  """Saves data dict as csv file in the data_directory.
+
+  Args:
+      data (dict): A dictionary containing (filename, last_modified_date, filesize) as keys with respective List[str] as values.
+      data_directory (str): A path where all of the data are located.
+      filename (str): Name of the file.
+  """
   pd.DataFrame.from_dict(data).to_csv(get_path(data_directory, filename), index= False)
 
 def update_metadata(data : dict, data_directory : str, filename: str) -> None: 
+  """ Modifies the meta data on file if it differs from the data. 
+
+  Args:
+      data (dict): A dictionary containing (filename, last_modified_date, filesize) as keys with respective List[str] as values.
+      data_directory (str): A path where all of the data are located
+      filename (str): Name of the metadata on file.
+  """
   filepath : str = get_path(data_directory, filename)
   filenames, modified_dates, filesize = list(data.values())
   rows = zip(filenames, modified_dates, filesize)
@@ -98,6 +114,14 @@ def update_metadata(data : dict, data_directory : str, filename: str) -> None:
 
 
 def extract_row_content(row : str) -> tuple[str, datetime, str]:
+  """ Extracts the filename, last_modified_date, and filesize from row.
+
+  Args:
+      row (str): A single string containing metadata information about a downloadable zip file.
+
+  Returns:
+      tuple[str, datetime, str]: A tuple containing the name of the file, last modified date, and the filesize
+  """
   row_content : List[str] = row.split(" ")
 
   month = row_content[1]
@@ -116,6 +140,12 @@ def extract_row_content(row : str) -> tuple[str, datetime, str]:
   return filename, last_modified_date, file_size
 
 def archive_data(data_directory : str, filename: str) -> None:
+  """Moves filename to the archive folder and keeps tracks the version of the file.
+
+  Args:
+      data_directory (str): A path where all of the data are located
+      filename (str): Name of the file.
+  """
   year : str = filename[:4]
   from_path : str = get_path(data_directory, year, filename)
   archive_path : str = get_path(data_directory, "archive")
@@ -132,11 +162,13 @@ def archive_data(data_directory : str, filename: str) -> None:
     shutil.move(from_path, to_path)
 
 def extract_zipfile(url: str = "https://divvy-tripdata.s3.amazonaws.com", data_directory: str = "data", destination : str = "raw", metadata_filename : str = "zipfile_metadata.csv") -> None:
-  """Downloads and unzips the zip file content to data_directory (i.e data/raw) folder organized by the year
-  the data was collected
+  """Downloads and extracts all content form zip file from url if the content doesn't exist in the data directory. 
 
   Args:
-      data_directory (str): Path to the location where to store data. 
+      url (str, optional): Webpage where the downloadable zipfile are located. Defaults to "https://divvy-tripdata.s3.amazonaws.com".
+      data_directory (str, optional): Name of the directory where all of the data is stored. Defaults to "data".
+      destination (str, optional): _description_. Defaults to "raw".
+      metadata_filename (str, optional): Name of the metadata filename. Defaults to "zipfile_metadata.csv".
   """
   extract_zipfile_metadata(data_directory, metadata_filename) 
   filepath : str = get_path(data_directory, metadata_filename)
@@ -146,7 +178,6 @@ def extract_zipfile(url: str = "https://divvy-tripdata.s3.amazonaws.com", data_d
   source_and_filename = [(f"{url}/{filename}", f"{filename[:-4]}.csv") for filename in zipfile_filenames]
 
   for source, filename in source_and_filename:
-    # print(source)
     file, _ = urllib.request.urlretrieve(source)
     with zipfile.ZipFile(file) as zipfile_content:
       year : str = filename[:4]
@@ -165,13 +196,17 @@ def extract_zipfile(url: str = "https://divvy-tripdata.s3.amazonaws.com", data_d
           zipfile_content.extractall(path)
 
 def get_path(*paths : tuple[str], include_dir : bool = True) -> str:
+  """ Creates path from the source directory if the include_dir is True; Otherwise,
+  creates path from the provided inp
+
+  Args:
+      include_dir (bool, optional): _description_. Defaults to True.
+
+  Returns:
+      str: An absolute path to desired location.
+  """
   if include_dir:
+    DIRECTORY : str = Path.cwd()
     return os.path.join(DIRECTORY, *paths)
   else:
     return os.path.join(*paths)
-
-
-
-
-
-
