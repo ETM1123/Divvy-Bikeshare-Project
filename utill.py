@@ -197,7 +197,7 @@ def extract_zipfile(url: str = "https://divvy-tripdata.s3.amazonaws.com", data_d
 
 def get_path(*paths : tuple[str], include_dir : bool = True) -> str:
   """ Creates path from the source directory if the include_dir is True; Otherwise,
-  creates path from the provided inp
+  creates path from the provided input.
 
   Args:
       include_dir (bool, optional): _description_. Defaults to True.
