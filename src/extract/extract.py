@@ -12,7 +12,8 @@ class Metadata:
   METADATA_URL : str = ""
   METADATA_TABLE_ID : str = ""
   Min_ROW_LENGTH : int = 67
-  def __inti__(self, directory : str, filename : str = "zipfile_metadata.csv"):
+
+  def __init__(self, directory : str, filename : str = "zipfile_metadata.csv") -> None:
     self.directory = directory
     self.filename = filename
 
@@ -21,6 +22,13 @@ class Metadata:
 
   def extract_row_content(self, row: str) -> tuple[str, datetime, str]:
     raise NotImplementedError
+
+  def valid_row(self, row : str) -> bool:
+    """Verifies row if it's in the correct format to extract content from."""
+    if len(row) < self.Min_ROW_LENGTH: return False
+    if ".zip" not in row: return False
+    if not row[:6].isdigit(): return False
+    return True
 
   def fetch_data(self) -> str:
     raise NotImplementedError
