@@ -21,7 +21,17 @@ class Metadata:
    raise NotImplementedError
 
   def extract_row_content(self, row: str) -> tuple[str, datetime, str]:
-    raise NotImplementedError
+    """Extracts the filename, last modified date, and the file size if and only if the provided row is correctly formatted"""
+    row_contents : list[str] = row.split(" ")
+    
+    month, day, year = row_contents[1], row_contents[2][:-2], row_contents[3][:-1]
+    hour_and_minute, am_pm  = ":".join(row_contents[4].split(":")[:-1]), row_contents[5].upper()
+    time = "".join([hour_and_minute, am_pm])
+
+    filename : str = row_contents[0]
+    last_modified_date : datetime = datetime.strptime(" ".join([month, day, year, time]), "%b %d %Y %I:%M%p")
+    filesize : str = " ".join(row_contents[6:8])
+    return filename, last_modified_date, filesize
 
   def valid_row(self, row : str) -> bool:
     """Verifies row if it's in the correct format to extract content from."""

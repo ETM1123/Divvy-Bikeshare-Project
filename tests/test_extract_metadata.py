@@ -24,9 +24,18 @@ def test_valid_row() -> None:
     expected_output, err_message = output
     assert expected_output == actual_output, err_message
 
-@pytest.mark.skip(reason="Not implemented")
 def test_extract_row_content() -> None:
-  raise NotImplementedError
+  test_cases = {
+  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : (("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 10:00AM", "%b %d %Y %I:%M%p"), "1.11 MB"), "Correct format - beginning of the Year"),
+  "202012-CCCC-CCCCCCCC.zip Dec 31st 2020, 10:00:00 am 1.11 MB ZIP file" : (("202012-CCCC-CCCCCCCC.zip", datetime.strptime("Dec 31 2020 10:00AM", "%b %d %Y %I:%M%p"), "1.11 MB"), "Correct format - end of the year."),
+  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 12:59:00 pm 1.11 MB ZIP file" : (("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 12:59PM", "%b %d %Y %I:%M%p"), "1.11 MB"), "Correct format - Hour changed"),
+  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 10.11 MB ZIP file" : (("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 10:00AM", "%b %d %Y %I:%M%p"), "10.11 MB"), "Correct format - large filesize"),
+  }
+  for test_input, output in test_cases.items():
+    actual_output = test_metadata.extract_row_content(test_input)
+    expected_output, err_message = output # all cases should pass i.e they're all in the correct format
+    assert expected_output == actual_output, err_message
+
 @pytest.mark.skip(reason="Not implemented")
 def test_get_data() -> None:
   raise NotImplementedError
