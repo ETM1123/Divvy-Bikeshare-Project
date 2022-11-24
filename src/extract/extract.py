@@ -40,12 +40,21 @@ class Metadata:
     if ".zip" not in row: return False
     if not row[:6].isdigit(): return False
     return True
+  
+  def file_exist(self) -> bool:
+    file_path = os.path.join(self.directory, self.filename)
+    return os.path.isfile(file_path)
 
   def fetch_data(self) -> str:
     raise NotImplementedError
   
   def get_data(self) -> pd.DataFrame:
-    raise NotImplementedError
+    """Returns a data frame if the metadata is extracted and stored as a csv file otherwise raise 
+    a NameError"""
+    file_path = os.path.join(self.directory, self.filename)
+    if self.file_exist():
+      return pd.read_csv(file_path)
+    raise ValueError(f"{self.filename} does not exist - need to invoke the Metadata.extract function first.")
 
   def archive_data(self, from_full_path : str, to_dir: str, filename : str) -> None:
     raise NotImplementedError

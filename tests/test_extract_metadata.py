@@ -61,9 +61,20 @@ def test_convert_to_csv() -> None:
   print(files_data_dir)
   assert test_metadata.filename in files_data_dir, "csv file was not created"
 
-@pytest.mark.skip(reason="Not implemented")
 def test_get_data() -> None:
-  raise NotImplementedError
+  test_cases = [
+  Metadata(directory = data_directory, filename="test_metadata_file.csv"), # file exists
+  Metadata(directory = data_directory, filename="file_does_not_exist.csv") # file does not exist
+  ]
+  with pytest.raises(ValueError):
+    for i, test_case in enumerate(test_cases):
+      actual_output = test_case.get_data()
+      if i == 0:
+        path = os.path.join(data_directory, test_case.filename)
+        expected_output = pd.read_csv(path)
+        assert expected_output == actual_output, "DataFrames are diff"
+      # i = 2 should raise a Value Error
+
 @pytest.mark.skip(reason="Not implemented")
 def test_archive_data() -> None:
   raise NotImplementedError
