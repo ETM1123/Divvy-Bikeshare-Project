@@ -1,5 +1,6 @@
 """ This file is going to contain the refactored code from util.py"""
 from datetime import datetime
+import os
 import pandas as pd
 
 class Zipfile:
@@ -52,9 +53,23 @@ class Metadata:
   def update(self, data : dict[str, list[str]]) -> None:
     raise NotImplementedError
 
-  def convert_to_dict(self, data : str):
-    raise NotImplementedError
+  def convert_to_dict(self, data : str) -> dict:
+    """Converts the correctly formatted lines in data (i.e row) into a dict. NOTE if there exist some line in the data where
+    the format does not suffice then the line wll not be in the dict."""
+    data_dict : dict[str : list] = {"filename" : [], "last_modified_date" : [], "filesize" : []}
+    rows : list[str] = data.split("\n")
+    for row in rows:
+      if self.valid_row(row):
+        filename, last_modified_date, filesize = self.extract_row_content(row)
+        data_dict["filename"].append(filename)
+        data_dict["last_modified_date"].append(last_modified_date)
+        data_dict["filesize"].append(filesize)
+    return data_dict
 
   def convert_to_csv(self, data : dict[str : list]) -> None: 
-    raise NotImplementedError
-    
+    """Converts data (in dict format: (column names : values) where the list of values is the same length for all column names.
+    The file is saved in the data directory."""
+    file_location: str = os.path.join(self.directory, self.filename)
+    data = pd.DataFrame.from_dict(data)
+    print(data.head())
+    data.to_csv(file_location, index=False)
