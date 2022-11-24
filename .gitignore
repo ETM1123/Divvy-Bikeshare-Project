@@ -2,3 +2,5 @@ data
 venvDivvy
 main.py
 playground.py
+test_domain.py
+.coverage
