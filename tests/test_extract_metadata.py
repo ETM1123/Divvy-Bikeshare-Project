@@ -75,9 +75,63 @@ def test_get_data() -> None:
         assert expected_output == actual_output, "DataFrames are diff"
       # i = 2 should raise a Value Error
 
+def test_get_from_full_path() -> None:
+  test_cases : dict[str, str] = {
+    "202001-TEST-FILE0001.csv" : os.path.join(data_directory, "testfiles", "2020","202001-TEST-FILE0001.csv"),
+    "202001-TEST-FILE0001.txt" : os.path.join(data_directory, "testfiles", "2020","202001-TEST-FILE0001.txt")
+  }
+  for test_input, expected_output in test_cases.items():
+    add_file(test_input)
+    actual_output = test_metadata.get_file_from_full_path(test_input, from_dir="testfiles")
+    msg = f"Expected_output: {expected_output} \n Actual_output: {actual_output}"
+    
+    assert expected_output == actual_output, msg
+    delete_file(actual_output)
+
+def test_get_to_full_path() -> None:
+  test_cases : dict[str, str] = {
+    "202001-TEST-FILE0001.csv" : os.path.join(data_directory, "testfiles", "2020","202001-TEST-FILE0001_v2.csv"), # in file
+    "202001-TEST-FILE0001.txt" : os.path.join(data_directory, "testfiles", "2020","202001-TEST-FILE0001.txt") # not in file
+  }
+  dir = os.path.join("testfiles", "2020")
+  add_file("202001-TEST-FILE0001.csv")
+  for test_input, expected_output in test_cases.items():
+    actual_output = test_metadata.get_file_to_full_path(test_input, to_dir= dir)  
+    assert expected_output == actual_output, actual_output
+
 @pytest.mark.skip(reason="Not implemented")
-def test_archive_data() -> None:
+def test_archive_data() -> None: 
   raise NotImplementedError
+
 @pytest.mark.skip(reason="Not implemented")
 def test_update() -> None:
   raise NotImplementedError
+
+def add_file(filename, test_dir = "testfiles") -> None:
+  year = filename[:4]
+  dir_path = os.path.join(data_directory, test_dir, year)
+  path = os.path.join(data_directory, test_dir, year, filename)
+  
+  try:
+    open(path, "w").close()
+
+  except FileNotFoundError:
+    os.makedirs(dir_path)
+    open(path, "w").close()
+
+  except FileExistsError:
+    print(f"File: {filename} already exist in {test_dir} directory")
+
+  print(f"done adding {path}")
+
+def delete_file(path) -> None:
+  if os.path.isfile(path):
+    os.remove(path)
+  
+# if __name__ == "__main__":
+#   # add_file("test.csv")
+#   x = os.path.join(data_directory,"testfiles", "2020", "202001-TEST-FILE0001.csv")
+#   y = test_metadata.get_file_from_full_path("202001-TEST-FILE0001.csv","testfiles")
+#   print(x)
+#   print(y)
+#   print(x == y)
