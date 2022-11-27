@@ -119,13 +119,52 @@ def test_archive_data() -> None:
 
     assert file_is_not_org_path and file_is_archived
   # clean up (comment code below if you want files to be created)
-  for file in os.listdir(to_dir_full):
-    path : str = os.path.join(to_dir_full, file)
-    delete_file(path)
+  # for file in os.listdir(to_dir_full):
+  #   path : str = os.path.join(to_dir_full, file)
+  #   delete_file(path)
 
-@pytest.mark.skip(reason="Not implemented")
 def test_update() -> None:
-  raise NotImplementedError
+  test_metadata_csv = """filename,last_modified_date,filesize
+202001-CCC1-CCCCCCCC.zip,2020-01-01 10:00:00,1.11 MB
+202102-CCC2-CCCCCCCC.zip,2021-02-02 10:00:00,10.11 MB
+202203-CCC3-CCCCCCCC.zip,2022-03-03 10:00:00,100.11 MB
+"""
+  filename : str = "test_metadata.csv"
+  path =  os.path.join(data_directory, "testfiles")
+  full_file_path = os.path.join(path, filename)
+  with open(full_file_path, "w") as file:
+    file.write(test_metadata_csv)
+
+  new_data : dict[str, list[tuple(str, datetime, str)]] = {
+    "filename" : ["202204-CCC4-CCCCCCCC.zip", "202001-CCC1-CCCCCCCC.zip"],
+    "last_modified_date" : [datetime.strptime("Apr 4 2020 10:00AM", "%b %d %Y %I:%M%p"), datetime.strptime("Jan 21 2020 10:00AM", "%b %d %Y %I:%M%p") ],
+    "filesize" : ["1000.11 MB", "100.11 MB"]
+  }
+
+
+  expected_dict : dict[str, list] = { 
+    "filename" : ["202001-CCC1-CCCCCCCC.zip", 
+                  "202102-CCC2-CCCCCCCC.zip", 
+                  "202203-CCC3-CCCCCCCC.zip",
+                  "202204-CCC4-CCCCCCCC.zip"], 
+    "last_modified_date" : [datetime.strptime("Jan 21 2020 10:00AM", "%b %d %Y %I:%M%p"), 
+                            datetime.strptime("Feb 2 2021 10:00AM", "%b %d %Y %I:%M%p"), 
+                            datetime.strptime("Mar 3 2022 10:00AM", "%b %d %Y %I:%M%p"),
+                            datetime.strptime("Apr 4 2020 10:00AM", "%b %d %Y %I:%M%p")],
+    "filesize" :  ["100.11 MB", "10.11 MB", "100.11 MB", "1000.11 MB"]
+    }
+  # add the modified file
+  add_file("202001-CCC1-CCCCCCCC.csv", test_dir = os.path.join("testfiles", "raw"))
+
+  # expected result 
+  expected_result : pd.DataFrame = pd.DataFrame.from_dict(expected_dict)
+
+  # invoke 
+  metadata = Metadata(directory=path, filename = filename)
+  metadata.update(new_data)
+  actual_result_df = metadata.get_data()
+
+  assert expected_result.equals(actual_result_df)
 
 def add_file(filename, test_dir = "testfiles") -> None:
   year = filename[:4]
