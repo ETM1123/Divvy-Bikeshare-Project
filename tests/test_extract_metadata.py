@@ -108,8 +108,8 @@ def test_archive_data() -> None:
 
   for i in range(2):
     add_file(test_filename)
-    file_is_not_org_path : bool = test_filename not in os.listdir(from_dir_path)
     test_metadata.archive_data(from_full_path,test_filename,to_dir=to_dir)
+    file_is_not_org_path : bool = test_filename not in os.listdir(from_dir_path)
     if i == 0:
       file_is_archived : bool = test_filename in os.listdir(to_dir_full)
 
@@ -118,11 +118,11 @@ def test_archive_data() -> None:
       file_is_archived : bool = filename_v2 in os.listdir(to_dir_full)
 
     assert file_is_not_org_path and file_is_archived
-
   # clean up (comment code below if you want files to be created)
   for file in os.listdir(to_dir_full):
-    delete_file(file)
-          
+    path : str = os.path.join(to_dir_full, file)
+    delete_file(path)
+
 @pytest.mark.skip(reason="Not implemented")
 def test_update() -> None:
   raise NotImplementedError
