@@ -99,10 +99,30 @@ def test_get_to_full_path() -> None:
     actual_output = test_metadata.get_file_to_full_path(test_input, to_dir= dir)  
     assert expected_output == actual_output, actual_output
 
-@pytest.mark.skip(reason="Not implemented")
 def test_archive_data() -> None: 
-  raise NotImplementedError
+  test_filename : str = "202001-TEST-FILE000.csv"
+  from_dir_path : str = os.path.join(data_directory, "testfiles", "2020")
+  from_full_path : str = os.path.join(from_dir_path, test_filename)
+  to_dir : str = os.path.join("testfiles", "archive")
+  to_dir_full : str = os.path.join(data_directory, to_dir)
 
+  for i in range(2):
+    add_file(test_filename)
+    file_is_not_org_path : bool = test_filename not in os.listdir(from_dir_path)
+    test_metadata.archive_data(from_full_path,test_filename,to_dir=to_dir)
+    if i == 0:
+      file_is_archived : bool = test_filename in os.listdir(to_dir_full)
+
+    if i == 1: 
+      filename_v2 = f"{test_filename[:-4]}_v2.csv" # should track version
+      file_is_archived : bool = filename_v2 in os.listdir(to_dir_full)
+
+    assert file_is_not_org_path and file_is_archived
+
+  # clean up (comment code below if you want files to be created)
+  for file in os.listdir(to_dir_full):
+    delete_file(file)
+          
 @pytest.mark.skip(reason="Not implemented")
 def test_update() -> None:
   raise NotImplementedError
@@ -127,11 +147,3 @@ def add_file(filename, test_dir = "testfiles") -> None:
 def delete_file(path) -> None:
   if os.path.isfile(path):
     os.remove(path)
-  
-# if __name__ == "__main__":
-#   # add_file("test.csv")
-#   x = os.path.join(data_directory,"testfiles", "2020", "202001-TEST-FILE0001.csv")
-#   y = test_metadata.get_file_from_full_path("202001-TEST-FILE0001.csv","testfiles")
-#   print(x)
-#   print(y)
-#   print(x == y)
