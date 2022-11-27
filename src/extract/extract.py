@@ -59,17 +59,17 @@ class Metadata:
 
   def archive_data(self, from_full_path : str,  filename : str, to_dir: str = "archive") -> None:
     """Moves csv file to archive folder."""
-    to_full_path : str = self.get_file_to_full_path(from_full_path, filename, to_dir)
+    to_full_path : str = self.get_file_to_full_path(filename, to_dir)
     shutil.move(from_full_path, to_full_path)
 
   def get_file_to_full_path(self, filename, to_dir):
     """Returns the address (str) if filename gets moved to_dir if filename exists
     in to_dir then it updates the address to track the different versions of filename in to_dir"""    
     to_dir_path = os.path.join(self.directory, to_dir)
-    csv_files_in_to_dir = [file for file in os.listdir(to_dir_path) if file[-4:] == ".csv"]
+    csv_files_in_to_dir = os.listdir(to_dir_path) 
     if filename in csv_files_in_to_dir:
       name_length : int = len(filename[:-4])
-      version_num : int = len([file for file in csv_files_in_to_dir if file[name_length] == filename[name_length]])
+      version_num : int = len([file for file in csv_files_in_to_dir if file[:name_length] == filename[:name_length]])
       new_filename : str = f"{filename[:name_length]}_v{version_num + 1}.csv"
       return os.path.join(to_dir_path, new_filename)
     else:
