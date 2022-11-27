@@ -54,7 +54,7 @@ class Metadata:
     a NameError"""
     file_path = os.path.join(self.directory, self.filename)
     if self.file_exist():
-      return pd.read_csv(file_path)
+      return pd.read_csv(file_path, parse_dates=["last_modified_date"])
     raise ValueError(f"{self.filename} does not exist - need to invoke the Metadata.extract function first.")
 
   def archive_data(self, from_full_path : str,  filename : str, to_dir: str = "archive") -> None:
