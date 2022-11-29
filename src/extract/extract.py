@@ -8,10 +8,11 @@ import os
 import shutil
 import pandas as pd
 import urllib.request
+import zipfile
 
 class Zipfile:
   """Downloads zipfile from web address and stores zipfile content locally"""
-  ZIPFILE_URL : str = ""
+  ZIPFILE_URL : str = "https://divvy-tripdata.s3.amazonaws.com"
 
   def __init__(self, data_directory_name : str = "data") -> None:
     self.directory : str = os.path.join(str(Path(__file__).parents[2]), data_directory_name)
@@ -29,13 +30,27 @@ class Zipfile:
       self.download_zipfile(file, filename, path)
 
   def get_source(self, zipfile_filenames: list[str]) -> list[str]:
-    """Creates an address to the """
+    """Creates an address to the downloadable zipfile """
     return [f"{self.ZIPFILE_URL}/{filename}" for filename in zipfile_filenames]
+
+  def download_zipfile(self, file : str, filename : str, path : str) -> None:
+    with zipfile.ZipFile(file) as zipfile_content:
+      if not self.file_exists(filename, path):
+        print(f"Downloading: {filename}")
+        zipfile_content.extractall(path)
+      else:
+        print(f"File from: {filename} already exists")
+  def file_exists(self, filename : str, path : str) -> bool:
+    """Returns True if filename exists in path"""
+    if os.path.isdir(path):
+      return filename in os.listdir(path)
+    else:
+      return False 
 
 class Metadata:
   """Extracts zipfile's metadata from web address and saves it as a csv file on local computer"""
-  METADATA_URL : str = ""
-  METADATA_TABLE_ID : str = ""
+  METADATA_URL : str = "https://divvy-tripdata.s3.amazonaws.com/index.html"
+  METADATA_TABLE_ID : str = "tbody-content"
   Min_ROW_LENGTH : int = 67
 
   def __init__(self, directory : str, filename : str = "zipfile_metadata.csv") -> None:
@@ -86,11 +101,11 @@ class Metadata:
     driver.get(self.METADATA_URL)
     sleep(2)
     metadata_content : str = driver.find_element(By.ID, self.METADATA_TABLE_ID)
-    return metadata_content
+    return metadata_content.text
 
   def get_data(self) -> pd.DataFrame:
     """Returns a data frame if the metadata is extracted and stored as a csv file otherwise raise 
-    a NameError"""
+    a ValueError"""
     file_path = os.path.join(self.directory, self.filename)
     if self.file_exist():
       return pd.read_csv(file_path, parse_dates=["last_modified_date"])
@@ -100,6 +115,10 @@ class Metadata:
     """Moves csv file to archive folder."""
     to_full_path : str = self.get_file_to_full_path(filename, to_dir)
     shutil.move(from_full_path, to_full_path)
+
+  def get_filenames(self):
+    if self.filename in os.listdir(self.directory):
+      return list(self.get_data().filename)
 
   def get_file_to_full_path(self, filename, to_dir):
     """Returns the address (str) if filename gets moved to_dir if filename exists
@@ -157,5 +176,10 @@ class Metadata:
     The file is saved in the data directory."""
     file_location: str = os.path.join(self.directory, self.filename)
     data = pd.DataFrame.from_dict(data)
-    print(data.head())
     data.to_csv(file_location, index=False)
+    
+if __name__ == "__main__":
+  directory : str = os.path.join(str(Path(__file__).parents[2]), "data")
+  print(directory)
+  zp = Zipfile()
+  zp.run()
