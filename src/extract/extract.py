@@ -7,6 +7,7 @@ from pathlib import Path
 import os
 import shutil
 import pandas as pd
+import urllib.request
 
 class Zipfile:
   """Downloads zipfile from web address and stores zipfile content locally"""
@@ -15,9 +16,21 @@ class Zipfile:
   def __init__(self, data_directory_name : str = "data") -> None:
     self.directory : str = os.path.join(str(Path(__file__).parents[2]), data_directory_name)
     self.metadata = Metadata(self.directory)
-    
 
+  def run(self):
+    """Downloads and extracts all contents form the filenames mentioned in zipfile metadata"""
+    self.metadata.extract()
+    filenames : list[str] = self.metadata.get_filenames()
+    list_of_source : list[str] = self.get_source(filenames)
 
+    for source, filename in zip(list_of_source, filenames):
+      file, _ = urllib.request.urlretrieve(source)
+      path = self.metadata.get_file_from_full_path(filename)
+      self.download_zipfile(file, filename, path)
+
+  def get_source(self, zipfile_filenames: list[str]) -> list[str]:
+    """Creates an address to the """
+    return [f"{self.ZIPFILE_URL}/{filename}" for filename in zipfile_filenames]
 
 class Metadata:
   """Extracts zipfile's metadata from web address and saves it as a csv file on local computer"""
