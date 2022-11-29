@@ -3,13 +3,20 @@ from datetime import datetime
 from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.common.by import By
 from time import sleep
+from pathlib import Path
 import os
 import shutil
 import pandas as pd
 
 class Zipfile:
   """Downloads zipfile from web address and stores zipfile content locally"""
-  pass
+  ZIPFILE_URL : str = ""
+
+  def __init__(self, data_directory_name : str = "data") -> None:
+    self.directory : str = os.path.join(str(Path(__file__).parents[2]), data_directory_name)
+    self.metadata = Metadata(self.directory)
+    
+
 
 
 class Metadata:
