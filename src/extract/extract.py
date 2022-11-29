@@ -23,7 +23,15 @@ class Metadata:
     self.filename = filename
 
   def extract(self):
-   raise NotImplementedError
+    """Extracts metadata and saves it as csv file in self.directory if the metadata file is 
+    not present in self.directory; otherwise, update the metadata file (stored in self.directory)
+    with the new extracted metadata."""
+    metadata_content : str = self.fetch_data()
+    metadata : dict[str, list[tuple(str, datetime, str)]] = self.convert_to_dict(metadata_content)
+    if self.filename in os.listdir(self.directory):
+      self.update(metadata)
+    else:
+      self.convert_to_csv(metadata)
 
   def extract_row_content(self, row: str) -> tuple[str, datetime, str]:
     """Extracts the filename, last modified date, and the file size if and only if the provided row is correctly formatted"""
