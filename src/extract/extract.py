@@ -1,5 +1,8 @@
 """ This file is going to contain the refactored code from util.py"""
 from datetime import datetime
+from selenium.webdriver import Chrome, ChromeOptions
+from selenium.webdriver.common.by import By
+from time import sleep
 import os
 import shutil
 import pandas as pd
@@ -47,8 +50,16 @@ class Metadata:
     return os.path.isfile(file_path)
 
   def fetch_data(self) -> str:
-    raise NotImplementedError
-  
+    """Opens web browser (without the display of the page) and extracts the text content
+    of the table displayed on the URL page."""
+    options = ChromeOptions()
+    options.headless = True 
+    driver = Chrome(options = options)
+    driver.get(self.METADATA_URL)
+    sleep(2)
+    metadata_content : str = driver.find_element(By.ID, self.METADATA_TABLE_ID)
+    return metadata_content
+
   def get_data(self) -> pd.DataFrame:
     """Returns a data frame if the metadata is extracted and stored as a csv file otherwise raise 
     a NameError"""
