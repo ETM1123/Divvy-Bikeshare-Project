@@ -22,7 +22,7 @@ class Metadata:
     self.directory = directory
     self.filename = filename
 
-  def extract(self):
+  def extract(self) -> None:
     """Extracts metadata and saves it as csv file in self.directory if the metadata file is 
     not present in self.directory; otherwise, update the metadata file (stored in self.directory)
     with the new extracted metadata."""
