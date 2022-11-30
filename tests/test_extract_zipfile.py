@@ -7,9 +7,7 @@ zf = Zipfile()
 def test_get_source() -> None:
   test_cases = [
     (["a.csv", "b.txt", "hello"], 
-     ["https://divvy-tripdata.s3.amazonaws.com/",
-      "https://divvy-tripdata.s3.amazonaws.com/", 
-      "https://divvy-tripdata.s3.amazonaws.com/"]),
+     []),
     (["a.zip", "b.zip", "c.zip"],
      ["https://divvy-tripdata.s3.amazonaws.com/a.zip",
      "https://divvy-tripdata.s3.amazonaws.com/b.zip",

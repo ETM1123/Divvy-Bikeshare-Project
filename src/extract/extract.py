@@ -31,7 +31,7 @@ class Zipfile:
 
   def get_source(self, zipfile_filenames: list[str]) -> list[str]:
     """Creates an address to the downloadable zipfile """
-    return [f"{self.ZIPFILE_URL}/{filename}" for filename in zipfile_filenames]
+    return [f"{self.ZIPFILE_URL}/{filename}" for filename in zipfile_filenames if ".zip" in filename]
 
   def download_zipfile(self, file : str, filename : str, path : str) -> None:
     with zipfile.ZipFile(file) as zipfile_content:
