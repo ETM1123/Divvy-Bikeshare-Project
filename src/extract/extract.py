@@ -26,7 +26,7 @@ class Zipfile:
 
     for source, filename in zip(list_of_source, filenames):
       file, _ = urllib.request.urlretrieve(source)
-      path = self.metadata.get_file_from_full_path(filename)
+      path = self.metadata.get_file_from_full_path(filename, include_filename = False)
       self.download_zipfile(file, filename, path)
 
   def get_source(self, zipfile_filenames: list[str]) -> list[str]:
@@ -133,9 +133,12 @@ class Metadata:
     else:
       return os.path.join(to_dir_path, filename)
   
-  def get_file_from_full_path(self, filename : str, from_dir : str = "raw") -> str:
+  def get_file_from_full_path(self, filename : str, include_filename : bool = True, from_dir : str = "raw") -> str:
     year = filename[:4]
-    return os.path.join(self.directory, from_dir, year, filename)
+    if include_filename:
+      return os.path.join(self.directory, from_dir, year, filename)
+    else:  
+      return os.path.join(self.directory, from_dir, year)
 
   def update(self, new_data : dict[str, list[str]]) -> None:
     """Updates the content in the metadata csv file. If the new data contains the 
@@ -177,7 +180,7 @@ class Metadata:
     file_location: str = os.path.join(self.directory, self.filename)
     data = pd.DataFrame.from_dict(data)
     data.to_csv(file_location, index=False)
-    
+
 if __name__ == "__main__":
   directory : str = os.path.join(str(Path(__file__).parents[2]), "data")
   print(directory)
