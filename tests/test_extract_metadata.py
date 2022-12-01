@@ -6,9 +6,9 @@ from extract.extract import Metadata
 import pandas as pd
 import pytest
 from pathlib import Path
+from helpers.util import add_file, delete_file, test_data_directory
 
-data_directory = os.path.join(str(Path(__file__).parents[1]), "data")
-test_metadata = Metadata(directory = data_directory, filename="test_metadata_file.csv")
+test_metadata = Metadata(directory = test_data_directory, filename="test_metadata_file.csv")
  
 def test_valid_row() -> None:
   test_cases : dict[str, tuple[bool, str]] = {
@@ -56,33 +56,33 @@ def test_convert_to_csv() -> None:
     "filesize" :  ["1.11 MB", "10.11 MB", "100.11 MB"]
     }
   test_metadata.convert_to_csv(test_case) # should create a csv file
-  print(data_directory)
-  files_data_dir = [file for file in os.listdir(data_directory) if file[-4:] == ".csv"]
+  print(test_data_directory)
+  files_data_dir = [file for file in os.listdir(test_data_directory) if file[-4:] == ".csv"]
   print(files_data_dir)
   assert test_metadata.filename in files_data_dir, "csv file was not created"
 
 def test_get_data() -> None:
   test_cases = [
-  Metadata(directory = data_directory, filename="test_metadata_file.csv"), # file exists
-  Metadata(directory = data_directory, filename="file_does_not_exist.csv") # file does not exist
+  Metadata(directory = test_data_directory, filename="test_metadata_file.csv"), # file exists
+  Metadata(directory = test_data_directory, filename="file_does_not_exist.csv") # file does not exist
   ]
   with pytest.raises(ValueError):
     for i, test_case in enumerate(test_cases):
       actual_output = test_case.get_data()
       if i == 0:
-        path = os.path.join(data_directory, test_case.filename)
+        path = os.path.join(test_data_directory, test_case.filename)
         expected_output = pd.read_csv(path)
         assert expected_output == actual_output, "DataFrames are diff"
       # i = 2 should raise a Value Error
 
 def test_get_from_full_path() -> None:
   test_cases : dict[str, str] = {
-    "202001-TEST-FILE0001.csv" : os.path.join(data_directory, "testfiles", "2020","202001-TEST-FILE0001.csv"),
-    "202001-TEST-FILE0001.txt" : os.path.join(data_directory, "testfiles", "2020","202001-TEST-FILE0001.txt")
+    "202001-TEST-FILE0001.csv" : os.path.join(test_data_directory, "raw", "2020","202001-TEST-FILE0001.csv"),
+    "202001-TEST-FILE0001.txt" : os.path.join(test_data_directory, "raw", "2020","202001-TEST-FILE0001.txt")
   }
   for test_input, expected_output in test_cases.items():
     add_file(test_input)
-    actual_output = test_metadata.get_file_from_full_path(test_input, from_dir="testfiles")
+    actual_output = test_metadata.get_file_from_full_path(test_input)
     msg = f"Expected_output: {expected_output} \n Actual_output: {actual_output}"
     
     assert expected_output == actual_output, msg
@@ -90,10 +90,10 @@ def test_get_from_full_path() -> None:
 
 def test_get_to_full_path() -> None:
   test_cases : dict[str, str] = {
-    "202001-TEST-FILE0001.csv" : os.path.join(data_directory, "testfiles", "2020","202001-TEST-FILE0001_v2.csv"), # in file
-    "202001-TEST-FILE0001.txt" : os.path.join(data_directory, "testfiles", "2020","202001-TEST-FILE0001.txt") # not in file
+    "202001-TEST-FILE0001.csv" : os.path.join(test_data_directory, "raw", "2020", "202001-TEST-FILE0001_v2.csv"), # in file
+    "202001-TEST-FILE0001.txt" : os.path.join(test_data_directory, "raw","2020", "202001-TEST-FILE0001.txt") # not in file
   }
-  dir = os.path.join("testfiles", "2020")
+  dir = os.path.join("raw", "2020")
   add_file("202001-TEST-FILE0001.csv")
   for test_input, expected_output in test_cases.items():
     actual_output = test_metadata.get_file_to_full_path(test_input, to_dir= dir)  
@@ -101,14 +101,14 @@ def test_get_to_full_path() -> None:
 
 def test_archive_data() -> None: 
   test_filename : str = "202001-TEST-FILE000.csv"
-  from_dir_path : str = os.path.join(data_directory, "testfiles", "2020")
+  from_dir_path : str = os.path.join(test_data_directory, "raw", "2020")
   from_full_path : str = os.path.join(from_dir_path, test_filename)
-  to_dir : str = os.path.join("testfiles", "archive")
-  to_dir_full : str = os.path.join(data_directory, to_dir)
+  # to_dir : str = os.path.join("testfiles", "archive")
+  to_dir_full : str = os.path.join(test_data_directory, "archive")
 
   for i in range(2):
     add_file(test_filename)
-    test_metadata.archive_data(from_full_path,test_filename,to_dir=to_dir)
+    test_metadata.archive_data(from_full_path,test_filename)
     file_is_not_org_path : bool = test_filename not in os.listdir(from_dir_path)
     if i == 0:
       file_is_archived : bool = test_filename in os.listdir(to_dir_full)
@@ -130,8 +130,8 @@ def test_update() -> None:
 202203-CCC3-CCCCCCCC.zip,2022-03-03 10:00:00,100.11 MB
 """
   filename : str = "test_metadata.csv"
-  path =  os.path.join(data_directory, "testfiles")
-  full_file_path = os.path.join(path, filename)
+  # path =  os.path.join(test_data_directory, "testfiles")
+  full_file_path = os.path.join(test_data_directory, filename)
   with open(full_file_path, "w") as file:
     file.write(test_metadata_csv)
 
@@ -154,35 +154,14 @@ def test_update() -> None:
     "filesize" :  ["100.11 MB", "10.11 MB", "100.11 MB", "1000.11 MB"]
     }
   # add the modified file
-  add_file("202001-CCC1-CCCCCCCC.csv", test_dir = os.path.join("testfiles", "raw"))
+  add_file("202001-CCC1-CCCCCCCC.csv")
 
   # expected result 
   expected_result : pd.DataFrame = pd.DataFrame.from_dict(expected_dict)
 
   # invoke 
-  metadata = Metadata(directory=path, filename = filename)
+  metadata = Metadata(directory=test_data_directory, filename = filename)
   metadata.update(new_data)
   actual_result_df = metadata.get_data()
 
   assert expected_result.equals(actual_result_df)
-
-def add_file(filename, test_dir = "testfiles") -> None:
-  year = filename[:4]
-  dir_path = os.path.join(data_directory, test_dir, year)
-  path = os.path.join(data_directory, test_dir, year, filename)
-  
-  try:
-    open(path, "w").close()
-
-  except FileNotFoundError:
-    os.makedirs(dir_path)
-    open(path, "w").close()
-
-  except FileExistsError:
-    print(f"File: {filename} already exist in {test_dir} directory")
-
-  print(f"done adding {path}")
-
-def delete_file(path) -> None:
-  if os.path.isfile(path):
-    os.remove(path)
