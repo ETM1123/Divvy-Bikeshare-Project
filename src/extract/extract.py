@@ -4,6 +4,7 @@ from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.common.by import By
 from time import sleep
 from pathlib import Path
+from typing import Any, Iterable
 import os
 import shutil
 import pandas as pd
@@ -62,7 +63,7 @@ class Metadata:
     not present in self.directory; otherwise, update the metadata file (stored in self.directory)
     with the new extracted metadata."""
     metadata_content : str = self.fetch_data()
-    metadata : dict[str, list[tuple(str, datetime, str)]] = self.convert_to_dict(metadata_content)
+    metadata : dict[str, Any] = self.convert_to_dict(metadata_content)
     if self.filename in os.listdir(self.directory):
       self.update(metadata)
     else:
@@ -100,8 +101,8 @@ class Metadata:
     driver = Chrome(options = options)
     driver.get(self.METADATA_URL)
     sleep(2)
-    metadata_content : str = driver.find_element(By.ID, self.METADATA_TABLE_ID)
-    return metadata_content.text
+    metadata_content : str = driver.find_element(By.ID, self.METADATA_TABLE_ID).text
+    return metadata_content
 
   def get_data(self) -> pd.DataFrame:
     """Returns a data frame if the metadata is extracted and stored as a csv file otherwise raise 
@@ -146,7 +147,7 @@ class Metadata:
     into the archive folder prior to updating the metadata file."""
     filepath : str = os.path.join(self.directory, self.filename)
     current_data : pd.DataFrame = pd.read_csv(filepath, parse_dates=["last_modified_date"])
-    new_data_rows : list[tuple[str, datetime, str]] = list(zip(*new_data.values()))
+    new_data_rows : zip[tuple[Any, ...]] = zip(*new_data.values())
     for row in new_data_rows:
       new_filename, new_last_modified_date, new_filesize = row
       if current_data.loc[current_data["filename"] == new_filename].shape[0] > 0:
@@ -161,10 +162,10 @@ class Metadata:
     # Save modifications 
     self.convert_to_csv(current_data.to_dict(orient="list"))
 
-  def convert_to_dict(self, data : str) -> dict:
+  def convert_to_dict(self, data : str) -> dict[str, Any]:
     """Converts the correctly formatted lines in data (i.e row) into a dict. NOTE if there exist some line in the data where
     the format does not suffice then the line wll not be in the dict."""
-    data_dict : dict[str : list] = {"filename" : [], "last_modified_date" : [], "filesize" : []}
+    data_dict : dict[str, Any] = {"filename" : [], "last_modified_date" : [], "filesize" : []}
     rows : list[str] = data.split("\n")
     for row in rows:
       if self.valid_row(row):
@@ -174,12 +175,12 @@ class Metadata:
         data_dict["filesize"].append(filesize)
     return data_dict
 
-  def convert_to_csv(self, data : dict[str : list]) -> None: 
+  def convert_to_csv(self, data : dict[str,Any]) -> None: 
     """Converts data (in dict format: (column names : values) where the list of values is the same length for all column names.
     The file is saved in the data directory."""
     file_location: str = os.path.join(self.directory, self.filename)
-    data = pd.DataFrame.from_dict(data)
-    data.to_csv(file_location, index=False)
+    data_df : pd.DataFrame = pd.DataFrame.from_dict(data)
+    data_df.to_csv(file_location, index=False)
 
 if __name__ == "__main__":
   directory : str = os.path.join(str(Path(__file__).parents[2]), "data")
