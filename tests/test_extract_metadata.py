@@ -9,6 +9,33 @@ from pathlib import Path
 from helpers.util import add_file, delete_file, test_data_directory
 
 test_metadata = Metadata(directory = test_data_directory, filename="test_metadata_file.csv")
+
+# test valid row
+def test_valid_row_incorrect_row_length_empty_string():
+  test_case : dict[str, bool] = {
+    "" : False
+  }
+  test_input, expected_output = test_case.items()
+  actual_output : bool = test_metadata.valid_row(test_input)
+  message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
+  assert expected_output == actual_output, message
+
+def test_valid_row_incorrect_row_length_missing_filename_info():
+  pass
+def test_valid_row_incorrect_row_length_missing_datetime_info():
+  pass
+def test_valid_row_incorrect_row_length_missing_filesize_info():
+  pass
+def test_valid_row_correct_row_length_incorrect_filename_format():
+  pass
+def test_valid_row_correct_row_length_incorrect_datetime_format():
+  pass
+def test_valid_row_correct_row_length_incorrect_datetime_format():
+  pass
+def test_valid_row_correct_row_length_incorrect_filesize_format():
+  pass
+def test_valid_row_correct_row_length_incorrect_format():
+  pass
  
 def test_valid_row() -> None:
   test_cases : dict[str, tuple[bool, str]] = {
