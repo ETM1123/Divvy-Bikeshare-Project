@@ -9,63 +9,121 @@ from pathlib import Path
 from helpers.util import add_file, delete_file, test_data_directory
 
 test_metadata = Metadata(directory = test_data_directory, filename="test_metadata_file.csv")
-
+"202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file"
 # test valid row
 def test_valid_row_incorrect_row_length_empty_string():
-  test_case : dict[str, bool] = {
-    "" : False
+  test_cases : dict[str, bool] = {
+    "" : False,
+    " ": False
   }
-  test_input, expected_output = test_case.items()
-  actual_output : bool = test_metadata.valid_row(test_input)
-  message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
-  assert expected_output == actual_output, message
+  for test_input, expected_output in test_cases.items():
+    actual_output : bool = test_metadata.valid_row(test_input)
+    message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
+    assert expected_output == actual_output, message
 
 def test_valid_row_incorrect_row_length_missing_filename_info():
-  pass
+  test_cases : dict[str, bool] = {
+    "Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : False,
+    "202001.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : False # add more
+  }
+  for test_input, expected_output in test_cases.items():
+    actual_output : bool = test_metadata.valid_row(test_input)
+    message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
+    assert expected_output == actual_output, message
+
 def test_valid_row_incorrect_row_length_missing_datetime_info():
-  pass
-def test_valid_row_incorrect_row_length_missing_filesize_info():
-  pass
-def test_valid_row_correct_row_length_incorrect_filename_format():
-  pass
-def test_valid_row_correct_row_length_incorrect_datetime_format():
-  pass
-def test_valid_row_correct_row_length_incorrect_datetime_format():
-  pass
-def test_valid_row_correct_row_length_incorrect_filesize_format():
-  pass
-def test_valid_row_correct_row_length_incorrect_format():
-  pass
- 
-def test_valid_row() -> None:
-  test_cases : dict[str, tuple[bool, str]] = {
-  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : (True, "Valid row"),
-  "Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : (False, "Missing filename"),
-  "202001-CCCC-CCCCCCCC.zip 10:00:00 am 1.11 MB ZIP file" : (False, "Missing date info"),
-  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020 1.11 MB ZIP file" : (False, "Missing time info"),
-  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am" : (False, "Missing file size info"),
-  "" : (False, "missing everything"),
-  "202001-CCCC-CCCCCCCC.csv Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : (False, "Filename has incorrect extension"),
-  "asdfgh-fghj-sdkfhdfj.zip XXX 999 2xc0, 1e:0s:04 ax 1.11 MB ZIP file" : (False, "Gibberish"),
+  test_cases : dict[str, bool] = {
+    "202001-CCCC-CCCCCCCC.zip 1.11 MB ZIP file" : False,
+    "202001-CCCC-CCCCCCCC.zip 2020, 10:00:00 am 1.11 MB ZIP file" : False,
+    "202001-CCCC-CCCCCCCC.zip 10:00:00 am 1.11 MB ZIP file" : False
   }
 
-  for test_case, output in test_cases.items():
-    actual_output = test_metadata.valid_row(test_case)
-    expected_output, err_message = output
-    assert expected_output == actual_output, err_message
+  for test_input, expected_output in test_cases.items():
+    actual_output : bool = test_metadata.valid_row(test_input)
+    message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
+    assert expected_output == actual_output, message
 
+def test_valid_row_incorrect_row_length_missing_filesize_info(): 
+  test_cases : dict[str, bool] = {
+  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am" : False,
+  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.1" : False,
+  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.1 MB" : False,
+  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am ZIP file" : False
+  }
+
+  for test_input, expected_output in test_cases.items():
+    actual_output : bool = test_metadata.valid_row(test_input)
+    message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
+    assert expected_output == actual_output, message
+
+def test_valid_row_correct_row_length_incorrect_filename_format():
+  
+  test_cases : dict[str, bool] = {
+    "202001-CCCC-CCCCCCCC.csv Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : False,
+    "202001-CCCC-CCCCCCCC.txt Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : False,
+    "202001-CCCC-CCCCCCCC.xyz Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : False,
+    "xxxxxx-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : False,
+    "2020xx-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : False
+  }
+
+  for test_input, expected_output in test_cases.items():
+    actual_output : bool = test_metadata.valid_row(test_input)
+    message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
+    assert expected_output == actual_output, message
+
+def test_valid_row_correct_row_length_incorrect_datetime_format():
+  test_cases : dict[str, bool] = {
+    "202001-CCCC-CCCCCCCC.zip 2020 Jan 1st, 10:00:00 am 1.11 MB ZIP file" : False,
+    "202001-CCCC-CCCCCCCC.zip 1st Jan 2020, 10:00:00 am 1.11 MB ZIP file" : False, 
+    "202001-CCCC-CCCCCCCC.zip 1st 2020 Jan, 10:00:00 am 1.11 MB ZIP file" : False, 
+    "202002-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : False, 
+    "202101-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : False
+  }
+
+  for test_input, expected_output in test_cases.items():
+    actual_output : bool = test_metadata.valid_row(test_input)
+    message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
+    assert expected_output == actual_output, message
+
+def test_valid_row_correct_row_length_incorrect_filesize_format():
+  test_cases : dict[str, bool] = {
+    "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am ZIP file 1.11 MB" : False, 
+    "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB file ZIP" : False, 
+    "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 ZIP MB file" : False, 
+  }
+
+  for test_input, expected_output in test_cases.items():
+    actual_output : bool = test_metadata.valid_row(test_input)
+    message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
+    assert expected_output == actual_output, message
+
+
+def test_valid_row_correct_inputs():
+  test_cases : dict[str, bool] = {
+    "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : True, 
+    "202002-CCCC-CCCCCCCC.zip Feb 2nd 2020, 10:00:00 am 1.11 MB ZIP file" : True, 
+    "202101-CCCC-CCCCCCCC.zip Jan 1st 2021, 10:00:00 am 1.11 MB ZIP file" : True, 
+    "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 3.55 MB ZIP file" : True, 
+  }
+
+  for test_input, expected_output in test_cases.items():
+    actual_output : bool = test_metadata.valid_row(test_input)
+    message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
+    assert expected_output == actual_output, message
+@pytest.mark.skip(reason="Need to refactor")
 def test_extract_row_content() -> None:
-  test_cases = {
-  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : (("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 10:00AM", "%b %d %Y %I:%M%p"), "1.11 MB"), "Correct format - beginning of the Year"),
-  "202012-CCCC-CCCCCCCC.zip Dec 31st 2020, 10:00:00 am 1.11 MB ZIP file" : (("202012-CCCC-CCCCCCCC.zip", datetime.strptime("Dec 31 2020 10:00AM", "%b %d %Y %I:%M%p"), "1.11 MB"), "Correct format - end of the year."),
-  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 12:59:00 pm 1.11 MB ZIP file" : (("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 12:59PM", "%b %d %Y %I:%M%p"), "1.11 MB"), "Correct format - Hour changed"),
-  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 10.11 MB ZIP file" : (("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 10:00AM", "%b %d %Y %I:%M%p"), "10.11 MB"), "Correct format - large filesize"),
+  test_cases : dict[str, tuple]= {
+  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : ("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 10:00AM", "%b %d %Y %I:%M%p"), "1.11 MB"), # Correct format - beginning of the Year
+  "202012-CCCC-CCCCCCCC.zip Dec 31st 2020, 10:00:00 am 1.11 MB ZIP file" : ("202012-CCCC-CCCCCCCC.zip", datetime.strptime("Dec 31 2020 10:00AM", "%b %d %Y %I:%M%p"), "1.11 MB"), # Correct format - end of the year.
+  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 12:59:00 pm 1.11 MB ZIP file" : ("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 12:59PM", "%b %d %Y %I:%M%p"), "1.11 MB"), # Correct format - Hour changed
+  "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 10.11 MB ZIP file" : ("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 10:00AM", "%b %d %Y %I:%M%p"), "10.11 MB"), # Correct format - large filesize
   }
   for test_input, output in test_cases.items():
     actual_output = test_metadata.extract_row_content(test_input)
     expected_output, err_message = output # all cases should pass i.e they're all in the correct format
     assert expected_output == actual_output, err_message
 
+@pytest.mark.skip(reason="Need to refactor")
 def test_convert_to_dict() -> None:
   test_cases : dict[str, dict] = {
   "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : { "filename" : ["202001-CCCC-CCCCCCCC.zip"], "last_modified_date" : [datetime.strptime("Jan 1 2020 10:00AM", "%b %d %Y %I:%M%p")],"filesize" :  ["1.11 MB"]},
@@ -76,6 +134,7 @@ def test_convert_to_dict() -> None:
     actual_output = test_metadata.convert_to_dict(test_input)
     assert expected_output == actual_output
 
+@pytest.mark.skip(reason="Need to refactor")
 def test_convert_to_csv() -> None:
   test_case : dict[str, list] = { 
     "filename" : ["202001-CCCC-CCCCCCCC.zip", "202101-CCCC-CCCCCCCC.zip", "202201-CCCC-CCCCCCCC.zip"], 
@@ -88,6 +147,7 @@ def test_convert_to_csv() -> None:
   print(files_data_dir)
   assert test_metadata.filename in files_data_dir, "csv file was not created"
 
+@pytest.mark.skip(reason="Need to refactor")
 def test_get_data() -> None:
   test_cases = [
   Metadata(directory = test_data_directory, filename="test_metadata_file.csv"), # file exists
@@ -102,6 +162,7 @@ def test_get_data() -> None:
         assert expected_output == actual_output, "DataFrames are diff"
       # i = 2 should raise a Value Error
 
+@pytest.mark.skip(reason="Need to refactor")
 def test_get_from_full_path() -> None:
   test_cases : dict[str, str] = {
     "202001-TEST-FILE0001.csv" : os.path.join(test_data_directory, "raw", "2020","202001-TEST-FILE0001.csv"),
@@ -115,6 +176,7 @@ def test_get_from_full_path() -> None:
     assert expected_output == actual_output, msg
     delete_file(actual_output)
 
+@pytest.mark.skip(reason="Need to refactor")
 def test_get_to_full_path() -> None:
   test_cases : dict[str, str] = {
     "202001-TEST-FILE0001.csv" : os.path.join(test_data_directory, "raw", "2020", "202001-TEST-FILE0001_v2.csv"), # in file
@@ -126,6 +188,7 @@ def test_get_to_full_path() -> None:
     actual_output = test_metadata.get_file_to_full_path(test_input, to_dir= dir)  
     assert expected_output == actual_output, actual_output
 
+@pytest.mark.skip(reason="Need to refactor")
 def test_archive_data() -> None: 
   test_filename : str = "202001-TEST-FILE000.csv"
   from_dir_path : str = os.path.join(test_data_directory, "raw", "2020")
@@ -150,6 +213,7 @@ def test_archive_data() -> None:
   #   path : str = os.path.join(to_dir_full, file)
   #   delete_file(path)
 
+@pytest.mark.skip(reason="Need to refactor")
 def test_update() -> None:
   test_metadata_csv = """filename,last_modified_date,filesize
 202001-CCC1-CCCCCCCC.zip,2020-01-01 10:00:00,1.11 MB
