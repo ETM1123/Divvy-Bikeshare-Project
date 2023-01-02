@@ -4,7 +4,6 @@ from helpers.util import add_file, delete_file, get_path, test_data_directory
 import pytest
 zf = Zipfile()
 
-
 def test_get_source() -> None:
   test_cases = [
     (["a.csv", "b.txt", "hello"], 

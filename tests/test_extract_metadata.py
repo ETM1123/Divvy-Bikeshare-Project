@@ -160,7 +160,6 @@ def test_get_data_file_does_not_exists() -> None:
   with pytest.raises(ValueError):
     test_case.get_data()
 
-@pytest.mark.skip(reason="Need to refactor")
 def test_get_from_full_path() -> None:
   test_cases : dict[str, str] = {
     "202001-TEST-FILE0001.csv" : os.path.join(test_data_directory, "raw", "2020","202001-TEST-FILE0001.csv"),
@@ -174,7 +173,6 @@ def test_get_from_full_path() -> None:
     assert expected_output == actual_output, msg
     delete_file(actual_output)
 
-@pytest.mark.skip(reason="Need to refactor")
 def test_get_to_full_path() -> None:
   test_cases : dict[str, str] = {
     "202001-TEST-FILE0001.csv" : os.path.join(test_data_directory, "raw", "2020", "202001-TEST-FILE0001_v2.csv"), # in file
@@ -186,7 +184,6 @@ def test_get_to_full_path() -> None:
     actual_output = test_metadata.get_file_to_full_path(test_input, to_dir= dir)  
     assert expected_output == actual_output, actual_output
 
-@pytest.mark.skip(reason="Need to refactor")
 def test_archive_data() -> None: 
   test_filename : str = "202001-TEST-FILE000.csv"
   from_dir_path : str = os.path.join(test_data_directory, "raw", "2020")
@@ -207,11 +204,10 @@ def test_archive_data() -> None:
 
     assert file_is_not_org_path and file_is_archived
   # clean up (comment code below if you want files to be created)
-  # for file in os.listdir(to_dir_full):
-  #   path : str = os.path.join(to_dir_full, file)
-  #   delete_file(path)
+  for file in os.listdir(to_dir_full):
+    path : str = os.path.join(to_dir_full, file)
+    delete_file(path)
 
-@pytest.mark.skip(reason="Need to refactor")
 def test_update() -> None:
   test_metadata_csv = """filename,last_modified_date,filesize
 202001-CCC1-CCCCCCCC.zip,2020-01-01 10:00:00,1.11 MB
