@@ -125,7 +125,6 @@ def test_extract_row_content() -> None:
     message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
     assert expected_output == actual_output, message
 
-@pytest.mark.skip(reason="Need to refactor")
 def test_convert_to_dict() -> None:
   test_cases : dict[str, dict] = {
   "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : { "filename" : ["202001-CCCC-CCCCCCCC.zip"], "last_modified_date" : [datetime.strptime("Jan 1 2020 10:00AM", "%b %d %Y %I:%M%p")],"filesize" :  ["1.11 MB"]},
@@ -136,7 +135,6 @@ def test_convert_to_dict() -> None:
     actual_output = test_metadata.convert_to_dict(test_input)
     assert expected_output == actual_output
 
-@pytest.mark.skip(reason="Need to refactor")
 def test_convert_to_csv() -> None:
   test_case : dict[str, list] = { 
     "filename" : ["202001-CCCC-CCCCCCCC.zip", "202101-CCCC-CCCCCCCC.zip", "202201-CCCC-CCCCCCCC.zip"], 
@@ -149,20 +147,18 @@ def test_convert_to_csv() -> None:
   print(files_data_dir)
   assert test_metadata.filename in files_data_dir, "csv file was not created"
 
-@pytest.mark.skip(reason="Need to refactor")
-def test_get_data() -> None:
-  test_cases = [
-  Metadata(directory = test_data_directory, filename="test_metadata_file.csv"), # file exists
-  Metadata(directory = test_data_directory, filename="file_does_not_exist.csv") # file does not exist
-  ]
+def test_get_data_file_exists() -> None:
+  test_case = Metadata(directory = test_data_directory, filename="test_metadata_file.csv") # file exists
+  actual_output_df = test_case.get_data()
+  path = os.path.join(test_data_directory, test_case.filename)
+  expected_output_df : pd.DataFrame = pd.read_csv(path, parse_dates=["last_modified_date"])
+  assert expected_output_df.equals(actual_output_df)
+
+
+def test_get_data_file_does_not_exists() -> None:
+  test_case = Metadata(directory = test_data_directory, filename="file_does_not_exist.csv") # file does not exist
   with pytest.raises(ValueError):
-    for i, test_case in enumerate(test_cases):
-      actual_output = test_case.get_data()
-      if i == 0:
-        path = os.path.join(test_data_directory, test_case.filename)
-        expected_output = pd.read_csv(path)
-        assert expected_output == actual_output, "DataFrames are diff"
-      # i = 2 should raise a Value Error
+    test_case.get_data()
 
 @pytest.mark.skip(reason="Need to refactor")
 def test_get_from_full_path() -> None:
