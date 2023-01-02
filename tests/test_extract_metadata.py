@@ -110,7 +110,7 @@ def test_valid_row_correct_inputs():
     actual_output : bool = test_metadata.valid_row(test_input)
     message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
     assert expected_output == actual_output, message
-@pytest.mark.skip(reason="Need to refactor")
+
 def test_extract_row_content() -> None:
   test_cases : dict[str, tuple]= {
   "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 1.11 MB ZIP file" : ("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 10:00AM", "%b %d %Y %I:%M%p"), "1.11 MB"), # Correct format - beginning of the Year
@@ -118,10 +118,12 @@ def test_extract_row_content() -> None:
   "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 12:59:00 pm 1.11 MB ZIP file" : ("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 12:59PM", "%b %d %Y %I:%M%p"), "1.11 MB"), # Correct format - Hour changed
   "202001-CCCC-CCCCCCCC.zip Jan 1st 2020, 10:00:00 am 10.11 MB ZIP file" : ("202001-CCCC-CCCCCCCC.zip", datetime.strptime("Jan 1 2020 10:00AM", "%b %d %Y %I:%M%p"), "10.11 MB"), # Correct format - large filesize
   }
-  for test_input, output in test_cases.items():
+    # all cases should pass i.e they're all in the correct format
+    # extract_row_content can only be called after the row is a valid row
+  for test_input, expected_output in test_cases.items():
     actual_output = test_metadata.extract_row_content(test_input)
-    expected_output, err_message = output # all cases should pass i.e they're all in the correct format
-    assert expected_output == actual_output, err_message
+    message : str = f" Input: {test_input} \n Expected output: {expected_output} \n Actual Output: {actual_output}"
+    assert expected_output == actual_output, message
 
 @pytest.mark.skip(reason="Need to refactor")
 def test_convert_to_dict() -> None:
