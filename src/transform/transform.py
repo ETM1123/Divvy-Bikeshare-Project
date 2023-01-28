@@ -3,6 +3,7 @@
 import datetime
 import os
 from pathlib import Path
+from typing import Tuple
 import pandas as pd
 
 DATA_DIR : str = os.path.join(str(Path(__file__).parents[2]), 'data')
@@ -105,38 +106,100 @@ def update_station_ids(rides, stations):
 
   return df2
 
+
+def update_station_mapping(master_station_filename : str, station_mapping_filename : str, stations : pd.DataFrame) -> None:
+  """Update the content of master_station_filename and station_filename if the 
+  station_df contains stations that is not in the current files"""
+  col_types = {'station_id' : str, 'station_name' : str, 'latitude' : float, 'longitude': float}
+  master_station_df = pd.read_csv(master_station_filename, dtype=col_types)
+  difference = get_difference_of_station_ids(stations, master_station_df)
+  if len(difference) > 0:
+    new_station_df = stations.loc[stations['station_id'].isin(difference)]
+    station_mapping_df = pd.read_csv(station_mapping_filename)
+    updated_master_station, updated_station_mapping = add_station_ids(new_station_df, master_station_df, station_mapping_df)
+    save_file(updated_master_station, master_station_df, master_station_filename)
+    save_file(updated_station_mapping, station_mapping_df, station_mapping_filename)
+
+def update_biketrip(rides : pd.DataFrame, station_mapping_filename : str, biketrip_filename : str) -> None:
+  stations = pd.read_csv(station_mapping_filename)
+  master_rides = pd.read_csv(biketrip_filename)
+  new_rides = update_station_ids(rides, stations)
+  updated_rides = pd.concat([master_rides, new_rides]).reset_index(drop=True)
+  save_file(updated_rides, master_rides, biketrip_filename)
+
+
+def get_difference_of_station_ids(stations, master_station_df):
+  """Returns the station_ids that in stations df but not in master_station_df"""
+  station_ids = set(stations['station_id'])
+  master_station_ids = set(master_station_df['station_id'])
+  diff = station_ids.difference(master_station_ids)
+  return diff
+
+def add_station_ids(new_stations, master_stations, station_mapping : pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+  """Returns two pandas data frames:
+    1. Combine new_station df and master_station df together.
+    2. Add the new station names to station_mapping df.
+  """
+  master_stations = pd.concat([master_stations, new_stations]).reset_index(drop=True)
+  new_station_names = set(new_stations['station_name'])
+  current_station_name = station_mapping['station_name'].values
+
+  for name in new_station_names:
+    if name not in current_station_name:
+      cols = ['station_name', 'latitude', 'longitude']
+      new_station_dict = new_stations.loc[new_stations['station_name'] == name, cols].to_dict('records')[0]
+      # add new id for station name
+      new_station_dict['ID'] = len(station_mapping) + 1
+      station_mapping = station_mapping.append(new_station_dict, ignore_index=True)
+
+  return master_stations, station_mapping
+
+def save_file(updated_df : pd.DataFrame, original_df : pd.DataFrame, filename : str) -> None:
+  """Save the updated_df if content does not match original df """
+  not_equal = ~updated_df.equals(original_df)
+  if not_equal:
+    updated_df.to_csv(filename, index=False)
+
+  
 def get_rides_info(df : pd.DataFrame) -> pd.DataFrame:
   rides_col : str = ['ride_id', 'rideable_type', 'started_at', 'ended_at', 'start_station_name', 'end_station_name']
   return df.loc[:, rides_col]
 
-def run():
-  raw_data_path = os.path.join(DATA_DIR, 'raw')
-  years = sorted([year for year in os.listdir(raw_data_path) if year.isdigit()])
-  for year in years:
-    raw_data_year_path = os.path.join(raw_data_path, year)
-    filenames : list(str) = [filename for filename in os.listdir(raw_data_year_path) if '.csv' in filename]
-    filename = filenames[0]
-    filepath = os.path.join(raw_data_year_path, filename)
-    df = get_raw_data(filepath)
-    return df
-    # clean_df = clean_data(df)
-    # stations = get_station_info(clean_df)
-    # rides = get_rides_info(clean_df)
-    # create_files('stations.csv',
-    #              'mapping.csv',
-    #              'rides.csv',
-    #              stations,
-    #              rides)
-    # x = pd.read_csv('stations.csv')
-    # y = pd.read_csv('mapping.csv')
-    # z = pd.read_csv('rides.csv')
-    # print(x.shape)
-    # print(y.shape)
-    # print(z.shape)
-    # break
+def run(filename,
+        path,
+        master_station_filename,
+        station_mapping_filename,
+        biketrip_filename):
+  df = get_raw_data(filename)
+  df = clean_data(df)
+  # extract station id info
+  stations = get_station_info(df)
+  # extract biketrip info
+  rides = get_rides_info(df)
+  # filenames
+  processed_files = [file for file in os.listdir(path) if '.csv' in file]
 
-# if __name__ == '__main__':
-  # run()
+  if master_station_filename in processed_files:
+    update_station_mapping(master_station_filename, station_mapping_filename, stations)
+    update_biketrip(rides, station_mapping_filename, biketrip_filename)
+  else:
+    create_files(master_station_filename, station_mapping_filename, biketrip_filename, stations, rides)
+
+if __name__ == '__main__':
+  # path = '.'
+  processed_data_path = os.path.join(DATA_DIR, 'processed')
+  master_station_filename = os.path.join(processed_data_path,'original_station_mapping.csv')
+  station_mapping_filename = os.path.join(processed_data_path,'new_station_mapping.csv',)
+  biketrip_filename = os.path.join(processed_data_path,'rides.csv')
+  raw_data_path = os.path.join(DATA_DIR, 'raw', '2020')
+  filenames = sorted([file for file in os.listdir(raw_data_path)])
+  filename = os.path.join(raw_data_path, filenames[0])
+  # print(filenames)
+  run(filename,
+      processed_data_path,
+      master_station_filename,
+      station_mapping_filename,
+      biketrip_filename)
 
 # load data - i.e read data into a pandas df
 # check data frame has the correct column names i.e check initial columns 
