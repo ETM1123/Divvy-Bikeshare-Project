@@ -5,3 +5,10 @@ playground.py
 test_domain.py
 utill.py
 .coverage
+transform 
+test_dataset
+*.egg-info
+*.pyc
+test.txt
+__pycache__
+extract_2.py 
