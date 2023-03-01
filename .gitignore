@@ -12,3 +12,4 @@ test_dataset
 test.txt
 __pycache__
 extract_2.py 
+.DS_STORE

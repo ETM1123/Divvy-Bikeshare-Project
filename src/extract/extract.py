@@ -50,13 +50,6 @@ def download_zipfile(url: str, filename: str, destination: str) -> None:
 
   return None
 
-def clean_up_zipfiles(path):
-  try:
-    # Delete zipfile
-    subprocess.run(f'rm {path}/*.zip', shell=True, check=True)
-  except subprocess.CalledProcessError as e:
-    print(f"Error: {e}")
-
 def extract_divvy_biketrip_dataset(start_date, end_date, destination, date_format : str = "%Y-%m-%d") -> None:
   start_date = datetime.strptime(start_date, date_format)
   end_date = datetime.strptime(end_date, date_format)
