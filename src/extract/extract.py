@@ -3,6 +3,8 @@ from datetime import datetime
 import subprocess
 import os
 from dateutil.relativedelta import relativedelta
+import pandas as pd
+import glob
 
 # "https://divvy-tripdata.s3.amazonaws.com/202004-divvy-tripdata.zip"
 URL_PREFIX = "https://divvy-tripdata.s3.amazonaws.com"
@@ -48,8 +50,6 @@ def download_zipfile(url: str, filename: str, destination: str) -> None:
   except subprocess.CalledProcessError as e:
     print(f"Error: {e}")
 
-  return None
-
 def extract_divvy_biketrip_dataset(start_date, end_date, destination, date_format : str = "%Y-%m-%d") -> None:
   start_date = datetime.strptime(start_date, date_format)
   end_date = datetime.strptime(end_date, date_format)
@@ -65,3 +65,23 @@ def extract_divvy_biketrip_dataset(start_date, end_date, destination, date_forma
       download_zipfile(url, filename, path)
   else:
     print("Invalid Date")
+
+
+def combine_csv_files(input_dir: str, output_file: str) -> None:
+ 
+  start_year, end_year = 2020, 2022
+  df_list = []
+
+  for year in range(start_year, end_year + 1):
+    data_dir = os.path.join(input_dir, str(year))
+    all_files = glob.glob(data_dir + "/*.csv")
+    for filename in all_files:
+      df = pd.read_csv(filename, index_col=None, header=0)
+      table_name = filename.replace(".csv", "")
+      df['table_name'] = table_name # keep track of the file
+      df_list.append(df)
+      print(f"added {filename} to df list")
+
+  combined_df = pd.concat(df_list, axis=0, ignore_index=True)
+   # Write the combined data to a single CSV file
+  combined_df.to_csv(output_file, index=False)
