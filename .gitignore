@@ -13,3 +13,6 @@ test.txt
 __pycache__
 extract_2.py 
 .DS_STORE
+
+.vscode
+notebooks

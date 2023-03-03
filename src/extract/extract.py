@@ -38,15 +38,16 @@ def validate_date(start_date, end_date):
   current_date = datetime.now() # max date 
   return start_date >= april_2020 and end_date <= current_date
 
-def download_zipfile(url: str, filename: str, destination: str) -> None:
+def download_file_from_web(url: str, filename: str, destination: str, compressed=True) -> None:
   try:
     data_path = os.path.join(destination, filename)
     # Download data
     subprocess.run(f'curl -sSL {url} > {data_path}', shell=True, check=True)
-    # Extract zipfile content
-    subprocess.run(f'unzip -o {data_path} -d {destination}', shell=True, check=True)
-    # Remove zipfile
-    subprocess.run(f'rm {data_path}', shell=True, check=True)
+    if compressed:
+      # Extract zipfile content
+      subprocess.run(f'unzip -o {data_path} -d {destination}', shell=True, check=True)
+      # Remove zipfile
+      subprocess.run(f'rm {data_path}', shell=True, check=True)
   except subprocess.CalledProcessError as e:
     print(f"Error: {e}")
 
@@ -62,7 +63,7 @@ def extract_divvy_biketrip_dataset(start_date, end_date, destination, date_forma
       year = filename[:4]
       path = os.path.join(destination, year)
       create_path(path)
-      download_zipfile(url, filename, path)
+      download_file_from_web(url, filename, path)
   else:
     print("Invalid Date")
 
