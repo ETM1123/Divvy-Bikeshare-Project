@@ -1,81 +1,98 @@
 import os
 import zipfile
 from pathlib import Path
+import pandas as pd
+from datetime import datetime
+from typing import Callable, List, Tuple, Union
+import pandas as pd
+import geopandas as gpd
+from transform.transform import *
 
-test_data_directory = os.path.join(str(Path(__file__).parents[2]), "data", "testfiles")
 
-def add_file(filename, year_N= True) -> None:
-  if year_N:
-    year = filename[:4]
-    dir_path = os.path.join(test_data_directory, "raw", year)
-    path = os.path.join(test_data_directory, "raw", year, filename)
+filepath_state =  os.path.join(str(Path(__file__).parents[2]), 'data', 'processed', 'cb_2018_us_state_500k.shp')
+filepath_neighborhood =  os.path.join(str(Path(__file__).parents[2]), 'data', 'processed', 'chicago_neighborhoods.geojson')
+states = gpd.read_file(filepath_state)
+neighborhood = gpd.read_file(filepath_neighborhood)
+
+
+
+def get_state(lat, lng, row, states = states):
+  # print(row[lng], row[lat])
+  point = gpd.points_from_xy([row[lng]], [row[lat]])[0]
+  result = states[states.contains(point)]
+
+  # If the query returned any results, return the name of the state
+  if not result.empty:
+    return result.iloc[0]['NAME']
   else:
-    dir_path = test_data_directory
-    path = os.path.join(dir_path, filename)
-  
-  try:
-    open(path, "w").close()
+    return "None"
 
-  except FileNotFoundError:
-    os.makedirs(dir_path)
-    open(path, "w").close()
+def transform_data(df) -> pd.DataFrame:
 
-  except FileExistsError:
-    print(f"File: {filename} already exist in {dir_path} directory")
+  station_df = build_station_df(df)
 
-  print(f"done adding {path}")
+  columns = ['start_station_id', 'end_station_id', 'start_lat', 'start_lng', 'end_lat', 'end_lng']
 
-def delete_file(path) -> None:
-  if os.path.isfile(path):
-    os.remove(path)
+  # correct station name to include start and end prefix
+  start_station_cols ={ col: "start_"+ col for col in station_df.columns}
+  end_station_cols ={ col: "end_"+ col for col in station_df.columns}
+  start_station_df = station_df.pipe(update_column_name, start_station_cols )
+  end_station_df = station_df.pipe(update_column_name, end_station_cols)
 
-def get_path(*path, include_home_dir = True):
-  if include_home_dir:
-    return os.path.join(test_data_directory, *path)
-  else:
-    return os.path.join(*path)
+  main_df = (df
+             .pipe(remove_column, columns)
+             .pipe(combine_data, start_station_df, 'start_station_name')
+             .pipe(combine_data, end_station_df, 'end_station_name')
+             )
+  return main_df
 
-def create_zipfile(zip_file_path, dummy_file_path):
-  # filepaths 
-  # zip_file_path : str  = os.path.join(test_data_directory, zipfile_name)
-  # dummy_file_path : str = os.path.join(test_data_directory, dummy_file_name)
-  # create dummy text file
-  dummy_file_name = "file1.txt" 
-  create_dummy_file(dummy_file_path)
+def build_station_df(df) -> pd.DataFrame:
+  columns = ['start_station_name', 'started_at', 'start_lat', 'start_lng']
+  columns_mapping={'start_station_name' : 'station_name',
+           'start_lat' : 'lat',
+           'start_lng' : 'lng',}
+  cols = ['station_id','station_name', 'lat', 'lng','state', 'pri_neigh', 'sec_neigh']
+  c_mapping_2 = {'pri_neigh':'primary_neighborhood','sec_neigh': 'secondary_neighborhood'}
 
-  # create a ZipFile object
-  zip_file = zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED)
-  compression = zipfile.ZIP_DEFLATED
-  try:
-    # add a file to the zip file
-    zip_file.write(dummy_file_path, dummy_file_name, compress_type=compression)
-  except FileNotFoundError:
-    print("Dummy file was created")
-  finally:
-    zip_file.close()
-    os.remove(dummy_file_path)
-
-
-def create_dummy_file(file_name : str) -> None:
-  # Open the file in write mode
-  file = open(file_name, "w")
-  # Write some text to the file
-  file.write("test 1,2,3 ...")
-  # Close the file
-  file.close()  
+  station_df = (df
+                .pipe(select_column, columns)
+                .pipe(update_column_name, columns_mapping)
+                .pipe(remove_null_values)
+                .pipe(sort_data,'started_at', 'asc')
+                .pipe(remove_duplicates, "station_name")
+                .pipe(remove_column, "started_at")
+                .pipe(add_column, 'state', get_state, 'lat', 'lng')
+                .pipe(filter_column, 'state','equal', 'Illinois')
+                .pipe(reset_index)
+                .pipe(update_column_name, {'index':'station_id'})
+                .pipe(add_geo_field_from_lat_long, neighborhood, 'lng', 'lat')
+                .pipe(select_column, cols)
+                .pipe(update_column_name, c_mapping_2)
+         )
+  return station_df
 
 
-def test_download_zipfile() -> None:
-  # Set up:
-  zip_file_name = "files.zip"
-  zip_file_path = os.path.join(test_data_directory, zip_file_name)
-
-  # Create a dummy text file
-  dummy_file_name = "file1.txt" 
-  dummy_file_path : str = os.path.join(test_data_directory, dummy_file_name)
-  create_dummy_file(dummy_file_path)
-  
-  # Compression type
 
 if __name__ == "__main__":
-  print(test_data_directory)
+  # print(test_data_directory)
+  filename = 'combined_biketrip_data.csv'
+  filepath : str = os.path.join(str(Path(__file__).parents[2]), 'data', 'processed', filename)
+  data_types = {
+  "ride_id" : str,
+  "rideable_type" : str,
+  "start_station_name" : str,
+  "end_station_name" : str,
+  "start_station_id" : str,
+  "end_station_id" : str,
+  "start_lat" : float,
+    "start_lng" : float,
+    "end_lat" : float,
+    "end_lng" : float,
+    "member_casual" : str,
+  }
+
+  date_parser  = lambda date: datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+  parse_dates : list[str] = ['started_at', 'ended_at']
+  df = pd.read_csv(filepath, dtype=data_types, date_parser=date_parser, parse_dates=parse_dates, nrows=1000)
+  df = transform_data(df)
+  print(df.head())
