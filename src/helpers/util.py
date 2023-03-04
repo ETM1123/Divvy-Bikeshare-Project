@@ -132,9 +132,13 @@ def transform_data(df) -> pd.DataFrame:
   end_station_df = station_df.pipe(update_column_name, end_station_cols)
 
   main_df = (df
+             .pipe(remove_null_values)
              .pipe(remove_column, columns)
              .pipe(combine_data, start_station_df, 'start_station_name')
              .pipe(combine_data, end_station_df, 'end_station_name')
+             .pipe(add_column, 'duration_min', duration_in_minutes, 'started_at', 'ended_at')
+             .pipe(filter_column, 'duration_min', 'greater', 0)
+             .pipe(filter_column, 'duration_min', 'less', 1440)
              )
   return main_df
 
@@ -162,6 +166,16 @@ def build_station_df(df) -> pd.DataFrame:
                 .pipe(update_column_name, c_mapping_2)
          )
   return station_df
+  
+  # from datetime import datetime, timedelta
+
+def duration_in_minutes(start_time : str, end_time : str, row) -> int:
+  """Calculates the duration in minutes '"""
+
+  duration = row[end_time] - row[start_time]
+  duration_minutes = duration.total_seconds() // 60
+  return int(duration_minutes)
+
 
 
 if __name__ == "__main__":
@@ -176,10 +190,10 @@ if __name__ == "__main__":
   "start_station_id" : str,
   "end_station_id" : str,
   "start_lat" : float,
-    "start_lng" : float,
-    "end_lat" : float,
-    "end_lng" : float,
-    "member_casual" : str,
+  "start_lng" : float,
+  "end_lat" : float,
+  "end_lng" : float,
+  "member_casual" : str,
   }
 
   date_parser  = lambda date: datetime.strptime(date, '%Y-%m-%d %H:%M:%S')

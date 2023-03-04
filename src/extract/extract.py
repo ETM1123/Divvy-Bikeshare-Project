@@ -1,5 +1,6 @@
 import subprocess
 import os
+from typing import List, Union
 import pandas as pd
 import glob
 
@@ -27,29 +28,24 @@ def download_file_from_web(url: str, filename: str, destination: str, compressed
     except subprocess.CalledProcessError as e:
       print(f"Error: {e}")
 
-def combine_csv_files(input_dir: str, output_file: str) -> None:
-    """Combine all CSV files in a directory into a single CSV file.
+def extract_all_files_in_directory(input_dir: str, file_ext: str = '.csv', sub_dir: List[str] = None, **kwargs) -> pd.DataFrame:
+  """Reads all files with a matching file extension in a given directory and returns them as a Pandas DataFrame.
 
-    Args:
-      input_dir (str): Directory containing the input CSV files.
-      output_file (str): Name of the output CSV file.
+  Args:
+    input_dir (str): The directory to search for files in.
+    file_ext (str, optional): The file extension to search for. Defaults to '.csv'.
+    sub_dir (list, optional): Specified sub-directories to search for files in. Defaults to None.
 
-    Returns:
-      None
-    """
-    start_year, end_year = 2020, 2022
-    df_list = []
+  Returns:
+    pd.DataFrame: A concatenated Pandas DataFrame containing data from all matching files in the specified 
+    directory/sub-directories.
+  """
+  print("Starting to combine files together ... ")
+  if sub_dir:
+    df_list = [pd.read_csv(file, **kwargs) for dir in sub_dir for file in glob.glob(f"{input_dir}/{dir}/*.csv") if file.endswith('.csv')]
+  else:
+    df_list = [pd.read_csv(file, **kwargs) for file in glob.glob(f"{input_dir}/*{file_ext}") if file.ends(file_ext)]
 
-    for year in range(start_year, end_year + 1):
-      data_dir = os.path.join(input_dir, str(year))
-      all_files = glob.glob(data_dir + "/*.csv")
-      for filename in all_files:
-        df = pd.read_csv(filename, index_col=None, header=0)
-        table_name = filename.replace(".csv", "")
-        df['table_name'] = table_name # keep track of the file
-        df_list.append(df)
-        print(f"added {filename} to df list")
-
-    combined_df = pd.concat(df_list, axis=0, ignore_index=True)
-    # Write the combined data to a single CSV file
-    combined_df.to_csv(output_file, index=False)
+  combined_df = pd.concat(df_list, axis=0, ignore_index=True)
+  print("Finished combining files together")
+  return combined_df
