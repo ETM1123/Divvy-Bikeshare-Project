@@ -39,8 +39,6 @@ def test_download_file_from_web_valid_url():
             else:
                 assert os.path.exists(os.path.join(temp_dir, filename))   # type: ignore
 
-    # clear_directory(temp_dir)
-
 
 def test_download_file_from_web_error():
     with pytest.raises(subprocess.CalledProcessError):
