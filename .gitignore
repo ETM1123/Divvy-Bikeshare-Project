@@ -16,3 +16,5 @@ extract_2.py
 .vscode
 notebooks
 .tox
+
+*_cache
