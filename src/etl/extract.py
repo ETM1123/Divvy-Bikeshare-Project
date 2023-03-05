@@ -24,8 +24,8 @@ def download_file_from_web(url: str, filename: str, destination: str, compressed
             # Remove zipfile
             subprocess.run(f'rm {data_path}', shell=True, check=True)
     except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
         raise subprocess.CalledProcessError(e.returncode, "Invalid url")
-        # print(f"Error: {e}")
 
 
 def extract_all_files_in_directory(input_dir: str, file_ext: str = '.csv', sub_dir: List[str] = [], **kwargs) -> pd.DataFrame:
