@@ -1,6 +1,5 @@
 import pandas as pd
-import geopandas as gpd
-from transform.transform import add_column, combine_data, remove_column, select_column, filter_column, sort_data, remove_duplicates
+from etl.transform import *
 import pytest
 
 @pytest.fixture

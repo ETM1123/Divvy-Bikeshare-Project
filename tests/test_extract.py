@@ -3,8 +3,7 @@
 import os
 from pathlib import Path
 import pytest
-from tempfile import TemporaryDirectory
-from extract.extract import download_file_from_web, extract_all_files_in_directory
+from etl.extract import download_file_from_web, extract_all_files_in_directory
 from helpers.util import create_files_in_directory, clear_directory
 import pandas as pd
 import subprocess

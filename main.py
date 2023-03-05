@@ -1,6 +1,6 @@
-from extract.extract import download_file_from_web, extract_all_files_in_directory
+from etl.extract import download_file_from_web, extract_all_files_in_directory
 from helpers.util import extract_divvy_biketrip_dataset, transform_data
-from load.load import send_to_csv
+from etl.load import send_to_csv
 from datetime import datetime
 import os
 from pathlib import Path
