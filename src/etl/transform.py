@@ -1,4 +1,4 @@
-from typing import Callable, List, Union, Any
+from typing import Callable, List, Union
 import pandas as pd
 import geopandas as gpd
 
@@ -69,7 +69,7 @@ def select_column(df: pd.DataFrame, cols: Union[str, List[str]]) -> pd.DataFrame
     Returns:
         pd.DataFrame: The DataFrame with only the specified columns.
     """
-    cols = cols if type(cols) == list else [cols] # type: ignore
+    cols = cols if type(cols) == list else [cols]   # type: ignore
     return df[cols]
 
 
@@ -171,7 +171,7 @@ def update_column_name(df: pd.DataFrame, col_name_mapping: dict[str, str]) -> pd
     return df.rename(columns=col_name_mapping)
 
 
-def add_column(df: pd.DataFrame, column_name: str, func: Callable[[Any], Any], *args, **kwargs) -> pd.DataFrame:
+def add_column(df: pd.DataFrame, column_name: str, func: Callable[..., Union[int, str]], *args, **kwargs) -> pd.DataFrame:
     """
     Adds a new column to the given DataFrame by applying the given function to each row.
 
@@ -185,7 +185,7 @@ def add_column(df: pd.DataFrame, column_name: str, func: Callable[[Any], Any], *
     Returns:
         pd.DataFrame: A new DataFrame with the additional column added.
     """
-    new_col = df.apply(lambda row: func(*args, **kwargs, row=row), axis=1) # type: ignore
+    new_col = df.apply(lambda row: func(*args, **kwargs, row=row), axis=1)   # type: ignore
     return pd.concat([df, new_col.rename(column_name)], axis=1)
 
 

@@ -228,6 +228,10 @@ def clear_directory(dir_path: str) -> None:
             print(f"Failed to delete {file_path}. Reason: {e}")
 
 
+def add_5(col: str, row: pd.Series) -> int:
+    return row[col] + 5   # type: ignore
+
+
 if __name__ == "__main__":
     # print(test_data_directory)
     filename = 'combined_biketrip_data.csv'
