@@ -68,35 +68,35 @@ def select_column(df: pd.DataFrame, cols: Union[str, List[str]]) -> pd.DataFrame
   Returns:
     pd.DataFrame: The DataFrame with only the specified columns.
   """
-
+  cols = cols if type(cols)==list else [cols]
   return df[cols]
 
 def filter_column(df : pd.DataFrame, column : str, condition : str, value : Union[int, float, str]):
   """
-    Filters a dataframe based on a given column and condition.
+  Filters a dataframe based on a given column and condition.
 
-    Args:
-      df (pandas DataFrame): The dataframe to filter.
-      column (str): The name of the column to filter.
-      condition (str): The condition to filter on. Valid conditions are "=", "equal", ">", "greater", "<", "less".
-      value (int, float, str): The value to filter on.
+  Args:
+    df (pandas DataFrame): The dataframe to filter.
+    column (str): The name of the column to filter.
+    condition (str): The condition to filter on. Valid conditions are "=", "equal", ">", "greater", "<", "less".
+    value (int, float, str): The value to filter on.
 
-    Returns:
-        pandas DataFrame: The filtered dataframe.
+  Returns:
+    pandas DataFrame: The filtered dataframe.
 
-    Raises:
-        ValueError: If the condition is not one of the valid conditions.
+  Raises:
+    ValueError: If the condition is not one of the valid conditions.
     """
   filtered_df = None
   match condition:
-      case "=" | "equal":
-          filtered_df = df.loc[df[column] == value, :]
-      case ">" | "greater":
-          filtered_df = df.loc[df[column] > value, :]
-      case "<" | "less":
-          filtered_df = df.loc[df[column] < value, :]
-      case _:
-          raise ValueError(f"Invalid condition '{condition}'. Valid conditions are '=', 'equal', '>', 'greater', '<', 'less'")
+    case "=" | "equal":
+      filtered_df = df.loc[df[column] == value, :]
+    case ">" | "greater":
+      filtered_df = df.loc[df[column] > value, :]
+    case "<" | "less":
+      filtered_df = df.loc[df[column] < value, :]
+    case _:
+      raise ValueError(f"Invalid condition '{condition}'. Valid conditions are '=', 'equal', '>', 'greater', '<', 'less'")
   return filtered_df
 
 def sort_data(df : pd.DataFrame, by : str, order : str = "asc"):
@@ -115,7 +115,7 @@ def sort_data(df : pd.DataFrame, by : str, order : str = "asc"):
   """
   # Check for valid order parameter
   if order.lower() not in ["asc", "desc"]:
-      raise ValueError("Invalid order parameter, must be 'asc' or 'desc'")
+    raise ValueError("Invalid order parameter, must be 'asc' or 'desc'")
   
   # Sort the DataFrame
   order = True if order.lower() == 'asc' else False
@@ -129,12 +129,12 @@ def remove_duplicates(df : pd.DataFrame, subset, method : str = 'first') -> pd.D
   Remove duplicates from a pandas DataFrame.
   
   Args:
-      df (pandas.DataFrame): DataFrame to remove duplicates from.
-      subset (list or tuple): List of column names to consider for identifying duplicates.
-      method (str, optional): Method to use for removing duplicates. Can be 'first', 'last', or 'False'. Defaults to 'first'.
+    df (pandas.DataFrame): DataFrame to remove duplicates from.
+    subset (list or tuple): List of column names to consider for identifying duplicates.
+    method (str, optional): Method to use for removing duplicates. Can be 'first', 'last', or 'False'. Defaults to 'first'.
   
   Returns:
-      pandas.DataFrame: DataFrame with duplicates removed.
+    pandas.DataFrame: DataFrame with duplicates removed.
   """
   return df.drop_duplicates(subset=subset, keep=method)
 
@@ -144,11 +144,11 @@ def remove_null_values(df: pd.DataFrame) -> pd.DataFrame:
   Remove rows with null (NaN) values from the given DataFrame.
 
   Args:
-      df: A pandas DataFrame object containing the data to be filtered.
+    df: A pandas DataFrame object containing the data to be filtered.
 
   Returns:
-      pd.DataFrame: A new DataFrame object with the same columns as the input DataFrame, but
-                    with any rows containing null (NaN) values removed.
+    pd.DataFrame: A new DataFrame object with the same columns as the input DataFrame, but
+    with any rows containing null (NaN) values removed.
   """
   return df.dropna(axis=0, how='any', inplace=False)
 
