@@ -1,5 +1,5 @@
 from etl.extract import download_file_from_web, extract_all_files_in_directory
-from helpers.util import extract_divvy_biketrip_dataset, transform_data
+from helpers.util_transform import extract_divvy_biketrip_dataset, transform_data
 from etl.load import send_to_csv
 from datetime import datetime
 import os
@@ -36,21 +36,21 @@ def main() -> None:
 
   # Extract destinations 
   destination = os.path.join(str(Path(__file__).parents[0]), "data")
-  divvy_intial_destination = os.path.join(destination, 'raw')
-  neighborhood_intial_destination = os.path.join(destination, 'processed')
-  state_intial_destination = os.path.join(destination, 'processed')
+  divvy_initial_destination = os.path.join(destination, 'raw')
+  neighborhood_initial_destination = os.path.join(destination, 'processed')
+  state_initial_destination = os.path.join(destination, 'processed')
 
 
-  # Load vairables 
+  # Load variables 
   divvy_final_destination = os.path.join(destination, 'final')
   output_filename = 'divvy_final.csv'
 
 
-  extract_divvy_biketrip_dataset(start_date, end_date, divvy_intial_destination, date_format="%Y-%m-%d")
-  download_file_from_web(neighborhood_url, neighborhood_filename, neighborhood_intial_destination)
-  download_file_from_web(state_url, state_filename, state_intial_destination)
+  extract_divvy_biketrip_dataset(start_date, end_date, divvy_initial_destination, date_format="%Y-%m-%d")
+  download_file_from_web(neighborhood_url, neighborhood_filename, neighborhood_initial_destination)
+  download_file_from_web(state_url, state_filename, state_initial_destination)
 
-  raw_divvy_df = extract_all_files_in_directory(divvy_intial_destination, 
+  raw_divvy_df = extract_all_files_in_directory(divvy_initial_destination, 
                                                 file_ext=file_ext, 
                                                 sub_dir=sub_dir,
                                                 dtype=dtype,

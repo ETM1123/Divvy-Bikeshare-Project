@@ -1,6 +1,6 @@
 from pathlib import Path
 from etl.load import send_to_csv
-from helpers.util import clear_directory
+from helpers.util_tests import clear_directory
 import pandas as pd
 import os
 
