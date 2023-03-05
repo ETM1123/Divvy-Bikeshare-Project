@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from datetime import datetime
+import shutil
 from typing import Callable, List, Tuple, Union
 import pandas as pd
 import geopandas as gpd
@@ -176,7 +177,40 @@ def duration_in_minutes(start_time : str, end_time : str, row) -> int:
   duration_minutes = duration.total_seconds() // 60
   return int(duration_minutes)
 
+## Testing 
 
+def create_files_in_directory(directory: str, file_ext: str, file_content : list[str], num_files: int)  -> None:
+  """
+  Creates files with given file extension in the specified directory.
+  Each file created will be named as file0, file1, file2,...fileN.
+
+  Args:
+    directory (str): Directory where files will be created.
+    file_ext (str): Extension for the files to be created.
+    num_files (int): Number of files to be created.
+  """
+  create_path(directory)
+  if len(file_content) == num_files:
+    for i in range(num_files):
+      filename = os.path.join(directory, f"file{i}{file_ext}")
+      with open(filename, 'w') as f:
+        f.write(file_content[i])
+
+
+def clear_directory(dir_path: str) -> None:
+  """Removes all files and directories in the provided directory. This will
+  permanently delete All content in provide directory - use with cation
+  """
+
+  for filename in os.listdir(dir_path):
+    file_path = os.path.join(dir_path, filename)
+    try:
+      if os.path.isfile(file_path):
+        os.unlink(file_path)
+      elif os.path.isdir(file_path):
+        shutil.rmtree(file_path)
+    except Exception as e:
+     print(f"Failed to delete {file_path}. Reason: {e}")
 
 if __name__ == "__main__":
   # print(test_data_directory)
