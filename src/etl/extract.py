@@ -28,7 +28,7 @@ def download_file_from_web(url: str, filename: str, destination: str, compressed
         # print(f"Error: {e}")
 
 
-def extract_all_files_in_directory(input_dir: str, file_ext: str = '.csv', sub_dir: List[str] = None, **kwargs) -> pd.DataFrame:
+def extract_all_files_in_directory(input_dir: str, file_ext: str = '.csv', sub_dir: List[str] = [], **kwargs) -> pd.DataFrame:
     """Reads all files with a matching file extension in a given directory and returns them as a Pandas DataFrame.
 
     Args:
@@ -40,7 +40,7 @@ def extract_all_files_in_directory(input_dir: str, file_ext: str = '.csv', sub_d
       pd.DataFrame: A concatenated Pandas DataFrame containing data from all matching files in the specified directory/sub-directories.
     """
     print("Starting to combine files together ... ")
-    if sub_dir:
+    if len(sub_dir) > 0 and type(sub_dir) == list:
         df_list = [pd.read_csv(file, **kwargs) for dir in sub_dir for file in glob.glob(f"{input_dir}/{dir}/*{file_ext}") if file.endswith('.csv')]
     else:
         df_list = [pd.read_csv(file, **kwargs) for file in glob.glob(f"{input_dir}/*{file_ext}") if file.endswith(file_ext)]
